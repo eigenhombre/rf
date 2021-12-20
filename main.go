@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strings"
@@ -80,6 +81,54 @@ func urlWasSeen(url string) bool {
 	return !errors.Is(err, os.ErrNotExist)
 }
 
+func pbcopy(data string) {
+	pbcopyCmd := exec.Command("pbcopy")
+	pbcopyIn, _ := pbcopyCmd.StdinPipe()
+	pbcopyCmd.Start()
+	pbcopyIn.Write([]byte(data))
+	pbcopyIn.Close()
+	pbcopyCmd.Wait()
+}
+
+func postItem(item Item) {
+	fmt.Printf("Posting %q...\n", item)
+	cmd := exec.Command("open", "https://news.ycombinator.com/submit")
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	pbcopy(item.Title)
+	fmt.Println("ANY KEY TO COPY URL...")
+	_ = readChar()
+	pbcopy(item.URL)
+}
+
+func spit(fileName string, content string) {
+	dirName := path.Dir(fileName)
+	mkdirIfNotExists(dirName)
+	file, err := os.Create(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	writer := bufio.NewWriter(file)
+	writer.WriteString(content)
+	defer writer.Flush()
+}
+
+func readChar() string {
+	tty, err := tty.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer tty.Close()
+
+	r, err := tty.ReadRune()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(r)
+}
+
 func main() {
 	err := mkdirIfNotExists(feedDataDir)
 	if err != nil {
@@ -101,44 +150,18 @@ articles:
 			fmt.Println("   NEW: " + item.Title)
 			fmt.Print("Post article? ")
 			c := readChar()
+			fmt.Println("")
 			switch strings.ToLower(c) {
 			case "y":
-				fmt.Println("\nI WILL!!!")
+				postItem(item)
 				recordURL(item.URL)
 			case "q":
 				fmt.Println("\nQuitting....")
 				break articles
 			default:
-				fmt.Println("")
 				recordURL(item.URL)
 			}
 		}
 	}
 	fmt.Println("OK")
-}
-
-func readChar() string {
-	tty, err := tty.Open()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer tty.Close()
-
-	r, err := tty.ReadRune()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return string(r)
-}
-
-func spit(fileName string, content string) {
-	dirName := path.Dir(fileName)
-	mkdirIfNotExists(dirName)
-	file, err := os.Create(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	writer := bufio.NewWriter(file)
-	writer.WriteString(content)
-	defer writer.Flush()
 }
