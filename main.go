@@ -35,7 +35,7 @@ type Item struct {
 }
 
 const (
-	feedDataDir = "/tmp/nyt.feeds"
+	feedDataDir = "/tmp/rss.feeds"
 )
 
 func RawFeedData(endpoint string) ([]byte, error) {
@@ -62,7 +62,10 @@ func mkdirIfNotExists(dirName string) error {
 }
 
 func removeFileExtension(fileName string) string {
-	return strings.TrimSuffix(fileName, path.Ext(fileName))
+	return strings.TrimSuffix(
+		strings.TrimSuffix(fileName, path.Ext(fileName)),
+		"/",
+	)
 }
 
 func metaDataFilePath(url string) string {
@@ -129,37 +132,51 @@ func readChar() string {
 	return string(r)
 }
 
+func getRssFeedURLs() []string {
+	return []string{
+		"https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
+		"http://planet.lisp.org/rss20.xml",
+		// FIXME: Handle Atom posts:
+		// "http://planet.clojure.in/atom.xml",
+		// "https://planetgolang.dev/index.xml",
+	}
+}
+
 func main() {
 	err := mkdirIfNotExists(feedDataDir)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	body, err := RawFeedData("https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Got %d bytes in XML body.\n", len(body))
+	for _, feed := range getRssFeedURLs() {
+		fmt.Printf("Handling feed %s....\n", feed)
+		body, err := RawFeedData(feed)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("Got %d bytes in XML body.\n", len(body))
 
-	items := FeedItems(body)
-articles:
-	for _, item := range items {
-		if urlWasSeen(item.URL) {
-			fmt.Println("REPEAT: " + item.Title)
-		} else {
-			fmt.Println("   NEW: " + item.Title)
-			fmt.Print("Post article? ")
-			c := readChar()
-			fmt.Println("")
-			switch strings.ToLower(c) {
-			case "y":
-				postItem(item)
-				recordURL(item.URL)
-			case "q":
-				fmt.Println("\nQuitting....")
-				break articles
-			default:
-				recordURL(item.URL)
+		items := FeedItems(body)
+	articles:
+		for _, item := range items {
+			if urlWasSeen(item.URL) {
+				fmt.Println("REPEAT: " + item.Title)
+			} else {
+				fmt.Println("   NEW: " + item.Title)
+				fmt.Println("        " + item.URL)
+				fmt.Print("Post article? ")
+				c := readChar()
+				fmt.Println("")
+				switch strings.ToLower(c) {
+				case "y":
+					postItem(item)
+					recordURL(item.URL)
+				case "q":
+					fmt.Println("\nQuitting....")
+					break articles
+				default:
+					recordURL(item.URL)
+				}
 			}
 		}
 	}
