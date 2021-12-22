@@ -28,6 +28,7 @@ func getRssFeedURLs() []string {
 	return []string{
 		"https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",
 		"http://planet.lisp.org/rss20.xml",
+		"https://rss.nytimes.com/services/xml/rss/nyt/Science.xml",
 		// FIXME: Handle Atom posts:
 		// "http://planet.clojure.in/atom.xml",
 		// "https://planetgolang.dev/index.xml",
