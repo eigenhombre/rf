@@ -6,8 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFeedItems(t *testing.T) {
-	rawData := []byte(`<?xml version="1.0" encoding="UTF-8"?>
+const exampleFeedSingleItem = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
 	<channel>
 		<title>NYT &gt; Technology</title>
@@ -17,6 +16,9 @@ func TestFeedItems(t *testing.T) {
 			<guid isPermaLink="true">https://www.nytimes.com/2021/12/15/technology/apple-return-to-work.html</guid>
 		</item>
 	</channel>
-</rss>`)
+</rss>`
+
+func TestFeedItems(t *testing.T) {
+	rawData := []byte(exampleFeedSingleItem)
 	assert.Equal(t, len(FeedItems(rawData)), 1)
 }
