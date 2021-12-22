@@ -1,7 +1,9 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -32,4 +34,17 @@ func readChar() string {
 		log.Fatal(err)
 	}
 	return string(r)
+}
+
+func RawFeedData(endpoint string) ([]byte, error) {
+	res, err := http.Get(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	bytes, err := ioutil.ReadAll(res.Body)
+	defer res.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
 }

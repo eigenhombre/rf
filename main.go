@@ -11,7 +11,7 @@ const (
 	feedStateDir = "/tmp/rss.feeds"
 )
 
-func postItem(item Item) {
+func postItem(item GenericFeedEntry) {
 	fmt.Printf("Posting %q...\n", item)
 	cmd := exec.Command("open", "https://news.ycombinator.com/submit")
 	err := cmd.Run()
@@ -43,7 +43,7 @@ func HandleFeed(url string) error {
 	}
 	fmt.Printf("Got %d bytes in XML body.\n", len(body))
 
-	items := FeedItems(body)
+	items := RSSFeedItems(body)
 articles:
 	for _, item := range items {
 		if urlWasSeen(item.URL) {
