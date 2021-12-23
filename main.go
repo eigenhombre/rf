@@ -27,14 +27,19 @@ const (
 	AtomType
 )
 
-func getRssFeedURLs() map[string]int {
-	return map[string]int{
-		"https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml": RSSType,
-		"http://planet.lisp.org/rss20.xml":                            RSSType,
-		"https://rss.nytimes.com/services/xml/rss/nyt/Science.xml":    RSSType,
-		"http://planet.clojure.in/atom.xml":                           AtomType,
-		"https://planetgolang.dev/index.xml":                          AtomType,
-		"https://matthewrocklin.com/blog/atom.xml":                    AtomType,
+type FeedSpec struct {
+	URL      string
+	FeedType int
+}
+
+func getRssFeedURLs() []FeedSpec {
+	return []FeedSpec{
+		{"https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml", RSSType},
+		{"http://planet.lisp.org/rss20.xml", RSSType},
+		{"https://rss.nytimes.com/services/xml/rss/nyt/Science.xml", RSSType},
+		{"http://planet.clojure.in/atom.xml", AtomType},
+		{"https://planetgolang.dev/index.xml", AtomType},
+		{"https://matthewrocklin.com/blog/atom.xml", AtomType},
 	}
 }
 
@@ -144,8 +149,8 @@ func main() {
 	}
 	verbose := flag.Bool("verbose", false, "verbose output")
 	flag.Parse()
-	for feed, feedType := range getRssFeedURLs() {
-		err = HandleFeed(feed, feedType, stdin, *verbose)
+	for _, fs := range getRssFeedURLs() {
+		err = HandleFeed(fs.URL, fs.FeedType, stdin, *verbose)
 		if err == io.EOF {
 			break
 		}
