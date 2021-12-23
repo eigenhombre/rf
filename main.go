@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 
 	"github.com/mattn/go-tty"
 )
@@ -72,12 +73,12 @@ func HandleFeed(shortname, url string, feedType int, theTTY *tty.TTY, verbose bo
 		item := items[i]
 		if urlWasSeen(item.URL) {
 			if verbose {
-				fmt.Println(shortname + "    REPEAT: " + item.Title)
+				fmt.Println(shortname + "SEEN: " + item.Title)
 			}
 			i++
 		} else {
-			fmt.Println(shortname + "       NEW: " + item.Title)
-			fmt.Println(shortname + "            " + item.URL)
+			fmt.Println(shortname + " NEW: " + item.Title)
+			fmt.Println(shortname + "      " + item.URL)
 			fmt.Print("? ")
 			c := readChar(theTTY)
 			fmt.Println("")
@@ -148,10 +149,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	verbose := flag.Bool("verbose", false, "verbose output")
-	flag.Parse()
+	fs := flag.NewFlagSet("args", flag.ContinueOnError)
+	var verbose bool
+	fs.BoolVar(&verbose, "verbose", false, "verbose output")
+	err = fs.Parse(os.Args[1:])
+	if err != nil {
+		// Usage() is called inside Parse
+		return
+	}
 	for _, fs := range getRssFeedURLs() {
-		err = HandleFeed(fs.ShortName, fs.URL, fs.FeedType, stdin, *verbose)
+		err = HandleFeed(fs.ShortName, fs.URL, fs.FeedType, stdin, verbose)
 		if err == io.EOF {
 			break
 		}
@@ -159,7 +166,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	if *verbose {
+	if verbose {
 		fmt.Println("OK")
 	}
 }
