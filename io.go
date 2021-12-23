@@ -22,14 +22,9 @@ func removeFileExtension(fileName string) string {
 	)
 }
 
-func readChar() string {
-	tty, err := tty.Open()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer tty.Close()
-
-	r, err := tty.ReadRune()
+// readChar reads a character from stdin using unbuffered I/O.
+func readChar(theTTY *tty.TTY) string {
+	r, err := theTTY.ReadRune()
 	if err != nil {
 		log.Fatal(err)
 	}

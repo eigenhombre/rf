@@ -3,25 +3,22 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
-	"os/exec"
-	"strings"
+
+	"github.com/mattn/go-tty"
 )
 
 const (
 	feedStateDir = "/tmp/rss.feeds"
 )
 
-func postItem(item GenericFeedEntry) {
+func postItem(item GenericFeedEntry, theTTY *tty.TTY) {
 	fmt.Printf("Posting %q...\n", item)
-	cmd := exec.Command("open", "https://news.ycombinator.com/submit")
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+	macOpen("https://news.ycombinator.com/submit")
 	PbCopy(item.Title)
 	fmt.Println("ANY KEY TO COPY URL...")
-	_ = readChar()
+	_ = readChar(theTTY)
 	PbCopy(item.URL)
 }
 
@@ -41,7 +38,7 @@ func getRssFeedURLs() map[string]int {
 	}
 }
 
-func HandleFeed(url string, feedType int, verbose bool) error {
+func HandleFeed(url string, feedType int, theTTY *tty.TTY, verbose bool) error {
 	if verbose {
 		fmt.Printf("Handling feed %s....\n", url)
 	}
@@ -61,44 +58,97 @@ func HandleFeed(url string, feedType int, verbose bool) error {
 	default:
 		log.Fatal(fmt.Sprintf("Bad feed type, %d!", feedType))
 	}
-articles:
-	for _, item := range items {
+	i := 0
+	for {
+		if i >= len(items) {
+			return nil
+		}
+		item := items[i]
 		if urlWasSeen(item.URL) {
 			if verbose {
 				fmt.Println("    REPEAT: " + item.Title)
 			}
+			i++
 		} else {
 			fmt.Println("       NEW: " + item.Title)
 			fmt.Println("            " + item.URL)
-			fmt.Print("Post article? ")
-			c := readChar()
+			fmt.Print("? ")
+			c := readChar(theTTY)
 			fmt.Println("")
-			switch strings.ToLower(c) {
-			case "y":
-				postItem(item)
+			switch c {
+			case "P":
+				postItem(item, theTTY)
 				recordURL(item.URL)
-			case "q":
+				i++
+			case "s":
+				i++
+			case "n":
+				i++
+			case "x":
+				i++
+				recordURL(item.URL)
+			case "o":
+				macOpen(item.URL)
+			case "N":
 				if verbose {
 					fmt.Println("\nWill stop processing articles in this feed....")
 				}
-				break articles
-			default:
-				recordURL(item.URL)
+				return nil
+			case "q":
+				if verbose {
+					fmt.Println("\n\nOK, See ya!")
+				}
+				return io.EOF
+			case "p":
+				if i > 0 {
+					i--
+				}
+				for {
+					if i == 0 {
+						break
+					}
+					if !urlWasSeen(items[i].URL) {
+						break
+					}
+					i--
+				}
+			case "B":
+				i = len(items) - 1
+			case "?":
+				fmt.Println(`
+				N next feed
+				B bottom of feed
+				P post
+				p prev article
+				s skip article for now
+				n skip article for now
+				x mark article done
+				o open
+				q quit program
+				`)
 			}
 		}
 	}
-	return nil
 }
 
 func main() {
-	err := mkdirIfNotExists(feedStateDir)
+	stdin, err := tty.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stdin.Close()
+
+	err = mkdirIfNotExists(feedStateDir)
 	if err != nil {
 		log.Fatal(err)
 	}
 	verbose := flag.Bool("verbose", false, "verbose output")
 	flag.Parse()
 	for feed, feedType := range getRssFeedURLs() {
-		err = HandleFeed(feed, feedType, *verbose)
+		err = HandleFeed(feed, feedType, stdin, *verbose)
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
 			log.Fatal(err)
 		}
