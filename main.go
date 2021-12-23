@@ -45,26 +45,28 @@ func getRssFeedURLs() []FeedSpec {
 	}
 }
 
-func HandleFeed(shortname, url string, feedType int, theTTY *tty.TTY, verbose bool) error {
+func getRssFeedItems(fs FeedSpec, verbose bool) ([]GenericFeedEntry, error) {
 	if verbose {
-		fmt.Printf("Handling feed '%s' (%s)....\n", shortname, url)
+		fmt.Printf("Handling feed '%s' (%s)....\n", fs.ShortName, fs.URL)
 	}
-	body, err := RawFeedData(url)
+	body, err := RawFeedData(fs.URL)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if verbose {
 		fmt.Printf("Got %d bytes in XML body.\n", len(body))
 	}
-	var items []GenericFeedEntry
-	switch feedType {
+	switch fs.FeedType { // FIXME: make and use a method
 	case RSSType:
-		items = RSSFeedItems(body)
+		return RSSFeedItems(body), nil
 	case AtomType:
-		items = AtomFeedItems(body)
+		return AtomFeedItems(body), nil
 	default:
-		log.Fatal(fmt.Sprintf("Bad feed type, %d!", feedType))
+		return nil, fmt.Errorf("bad feed type, %v", fs.FeedType)
 	}
+}
+
+func HandleFeed(fs FeedSpec, items []GenericFeedEntry, theTTY *tty.TTY, verbose bool) error {
 	i := 0
 	for {
 		if i >= len(items) {
@@ -73,12 +75,12 @@ func HandleFeed(shortname, url string, feedType int, theTTY *tty.TTY, verbose bo
 		item := items[i]
 		if urlWasSeen(item.URL) {
 			if verbose {
-				fmt.Println(shortname + "SEEN: " + item.Title)
+				fmt.Println(fs.ShortName + "SEEN: " + item.Title)
 			}
 			i++
 		} else {
-			fmt.Println(shortname + " NEW: " + item.Title)
-			fmt.Println(shortname + "      " + item.URL)
+			fmt.Println(fs.ShortName + " NEW: " + item.Title)
+			fmt.Println(fs.ShortName + "      " + item.URL)
 			fmt.Print("? ")
 			c := readChar(theTTY)
 			fmt.Println("")
@@ -158,7 +160,11 @@ func main() {
 		return
 	}
 	for _, fs := range getRssFeedURLs() {
-		err = HandleFeed(fs.ShortName, fs.URL, fs.FeedType, stdin, verbose)
+		items, err := getRssFeedItems(fs, verbose)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = HandleFeed(fs, items, stdin, verbose)
 		if err == io.EOF {
 			break
 		}
