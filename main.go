@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os/exec"
@@ -40,14 +41,17 @@ func getRssFeedURLs() map[string]int {
 	}
 }
 
-func HandleFeed(url string, feedType int) error {
-	fmt.Printf("Handling feed %s....\n", url)
+func HandleFeed(url string, feedType int, verbose bool) error {
+	if verbose {
+		fmt.Printf("Handling feed %s....\n", url)
+	}
 	body, err := RawFeedData(url)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Got %d bytes in XML body.\n", len(body))
-
+	if verbose {
+		fmt.Printf("Got %d bytes in XML body.\n", len(body))
+	}
 	var items []GenericFeedEntry
 	switch feedType {
 	case RSSType:
@@ -60,10 +64,12 @@ func HandleFeed(url string, feedType int) error {
 articles:
 	for _, item := range items {
 		if urlWasSeen(item.URL) {
-			fmt.Println("REPEAT: " + item.Title)
+			if verbose {
+				fmt.Println("    REPEAT: " + item.Title)
+			}
 		} else {
-			fmt.Println("   NEW: " + item.Title)
-			fmt.Println("        " + item.URL)
+			fmt.Println("       NEW: " + item.Title)
+			fmt.Println("            " + item.URL)
 			fmt.Print("Post article? ")
 			c := readChar()
 			fmt.Println("")
@@ -72,7 +78,9 @@ articles:
 				postItem(item)
 				recordURL(item.URL)
 			case "q":
-				fmt.Println("\nWill stop processing articles in this feed....")
+				if verbose {
+					fmt.Println("\nWill stop processing articles in this feed....")
+				}
 				break articles
 			default:
 				recordURL(item.URL)
@@ -87,11 +95,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	verbose := flag.Bool("verbose", false, "verbose output")
+	flag.Parse()
 	for feed, feedType := range getRssFeedURLs() {
-		err = HandleFeed(feed, feedType)
+		err = HandleFeed(feed, feedType, *verbose)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
-	fmt.Println("OK")
+	if *verbose {
+		fmt.Println("OK")
+	}
 }
