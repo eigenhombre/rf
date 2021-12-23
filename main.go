@@ -28,24 +28,25 @@ const (
 )
 
 type FeedSpec struct {
-	URL      string
-	FeedType int
+	ShortName string
+	URL       string
+	FeedType  int
 }
 
 func getRssFeedURLs() []FeedSpec {
 	return []FeedSpec{
-		{"https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml", RSSType},
-		{"http://planet.lisp.org/rss20.xml", RSSType},
-		{"https://rss.nytimes.com/services/xml/rss/nyt/Science.xml", RSSType},
-		{"http://planet.clojure.in/atom.xml", AtomType},
-		{"https://planetgolang.dev/index.xml", AtomType},
-		{"https://matthewrocklin.com/blog/atom.xml", AtomType},
+		{"NYTTECH", "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml", RSSType},
+		{"NYTSCI", "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml", RSSType},
+		{"PLISP", "http://planet.lisp.org/rss20.xml", RSSType},
+		{"PCLOJURE", "http://planet.clojure.in/atom.xml", AtomType},
+		{"PGO", "https://planetgolang.dev/index.xml", AtomType},
+		{"MATT", "https://matthewrocklin.com/blog/atom.xml", AtomType},
 	}
 }
 
-func HandleFeed(url string, feedType int, theTTY *tty.TTY, verbose bool) error {
+func HandleFeed(shortname, url string, feedType int, theTTY *tty.TTY, verbose bool) error {
 	if verbose {
-		fmt.Printf("Handling feed %s....\n", url)
+		fmt.Printf("Handling feed '%s' (%s)....\n", shortname, url)
 	}
 	body, err := RawFeedData(url)
 	if err != nil {
@@ -71,12 +72,12 @@ func HandleFeed(url string, feedType int, theTTY *tty.TTY, verbose bool) error {
 		item := items[i]
 		if urlWasSeen(item.URL) {
 			if verbose {
-				fmt.Println("    REPEAT: " + item.Title)
+				fmt.Println(shortname + "    REPEAT: " + item.Title)
 			}
 			i++
 		} else {
-			fmt.Println("       NEW: " + item.Title)
-			fmt.Println("            " + item.URL)
+			fmt.Println(shortname + "       NEW: " + item.Title)
+			fmt.Println(shortname + "            " + item.URL)
 			fmt.Print("? ")
 			c := readChar(theTTY)
 			fmt.Println("")
@@ -150,7 +151,7 @@ func main() {
 	verbose := flag.Bool("verbose", false, "verbose output")
 	flag.Parse()
 	for _, fs := range getRssFeedURLs() {
-		err = HandleFeed(fs.URL, fs.FeedType, stdin, *verbose)
+		err = HandleFeed(fs.ShortName, fs.URL, fs.FeedType, stdin, *verbose)
 		if err == io.EOF {
 			break
 		}
