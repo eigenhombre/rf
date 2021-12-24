@@ -42,6 +42,10 @@ func getRssFeedURLs() []FeedSpec {
 		{"PCLOJURE", "http://planet.clojure.in/atom.xml", AtomType},
 		{"PGO", "https://planetgolang.dev/index.xml", AtomType},
 		{"MATT", "https://matthewrocklin.com/blog/atom.xml", AtomType},
+		{"PP", "https://paintingperceptions.com/feed", RSSType},
+		{"ILLUS", "http://illustrationart.blogspot.com/feeds/posts/default", AtomType},
+		{"MUDDY", "https://www.muddycolors.com/feed/", RSSType},
+		{"GURNEY", "http://gurneyjourney.blogspot.com/feeds/posts/default", AtomType},
 	}
 }
 
@@ -75,12 +79,12 @@ func HandleFeed(fs FeedSpec, items []GenericFeedEntry, theTTY *tty.TTY, verbose 
 		item := items[i]
 		if urlWasSeen(item.URL) {
 			if verbose {
-				fmt.Println(fs.ShortName + "SEEN: " + item.Title)
+				fmt.Printf("%10s %7s: %s\n", fs.ShortName, "SEEN", item.Title)
 			}
 			i++
 		} else {
-			fmt.Println(fs.ShortName + " NEW: " + item.Title)
-			fmt.Println(fs.ShortName + "      " + item.URL)
+			fmt.Printf("%10s %7s: %s\n", fs.ShortName, "NEW", item.Title)
+			fmt.Printf("%10s %7s: %s\n", fs.ShortName, "", item.URL)
 			fmt.Print("? ")
 			c := readChar(theTTY)
 			fmt.Println("")
