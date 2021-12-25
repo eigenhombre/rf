@@ -21,16 +21,20 @@ type RSSItem struct {
 	URL     string   `xml:"link"`
 }
 
-func rssToGeneric(entry RSSItem) GenericFeedEntry {
-	return GenericFeedEntry{entry.Title, entry.URL}
+func (r RSSItem) EntryTitle() string {
+	return r.Title
 }
 
-func RSSFeedItems(rawFeedData []byte) []GenericFeedEntry {
+func (r RSSItem) EntryURL() string {
+	return r.URL
+}
+
+func RSSFeedItems(rawFeedData []byte) []FeedEntry {
 	feed := RSSFeed{}
 	xml.Unmarshal(rawFeedData, &feed)
-	ret := []GenericFeedEntry{}
+	ret := []FeedEntry{}
 	for _, item := range feed.Channel.Items {
-		ret = append(ret, rssToGeneric(item))
+		ret = append(ret, item)
 	}
 	return ret
 }

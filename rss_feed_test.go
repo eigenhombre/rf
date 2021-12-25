@@ -22,6 +22,6 @@ func TestRSSFeedItems(t *testing.T) {
 	rawData := []byte(exampleRSSFeedSingleItem)
 	items := RSSFeedItems(rawData)
 	assert.Equal(t, len(items), 1)
-	assert.Equal(t, items[0].Title, "Strongly Lettered Word")
-	assert.Equal(t, items[0].URL, "http://johnj.com/bazzy.html")
+	assert.Equal(t, items[0].EntryTitle(), "Strongly Lettered Word")
+	assert.Equal(t, items[0].EntryURL(), "http://johnj.com/bazzy.html")
 }

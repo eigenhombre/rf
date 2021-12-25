@@ -34,6 +34,6 @@ func TestAtomFeedItems(t *testing.T) {
 	rawData := []byte(exampleAtomFeedSingleItem)
 	items := AtomFeedItems(rawData)
 	assert.Equal(t, len(items), 1)
-	assert.Equal(t, items[0].Title, "Another Atomic Article")
-	assert.Equal(t, items[0].URL, "http://johnj.com/aaa.html")
+	assert.Equal(t, items[0].EntryTitle(), "Another Atomic Article")
+	assert.Equal(t, items[0].EntryURL(), "http://johnj.com/aaa.html")
 }

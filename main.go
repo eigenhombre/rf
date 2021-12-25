@@ -14,13 +14,13 @@ const (
 	feedStateDir = "/tmp/rss.feeds"
 )
 
-func postItem(item GenericFeedEntry, theTTY *tty.TTY) {
+func postItem(item FeedEntry, theTTY *tty.TTY) {
 	fmt.Printf("Posting %q...\n", item)
 	macOpen("https://news.ycombinator.com/submit")
-	PbCopy(item.Title)
+	PbCopy(item.EntryTitle())
 	fmt.Println("ANY KEY TO COPY URL...")
 	_ = readChar(theTTY)
-	PbCopy(item.URL)
+	PbCopy(item.EntryURL())
 }
 
 const (
@@ -49,7 +49,7 @@ func getRssFeedURLs() []FeedSpec {
 	}
 }
 
-func getRssFeedItems(fs FeedSpec, verbose bool) ([]GenericFeedEntry, error) {
+func getFeedItems(fs FeedSpec, verbose bool) ([]FeedEntry, error) {
 	if verbose {
 		fmt.Printf("Handling feed '%s' (%s)....\n", fs.ShortName, fs.URL)
 	}
@@ -70,28 +70,28 @@ func getRssFeedItems(fs FeedSpec, verbose bool) ([]GenericFeedEntry, error) {
 	}
 }
 
-func HandleFeed(fs FeedSpec, items []GenericFeedEntry, theTTY *tty.TTY, verbose bool) error {
+func HandleFeed(fs FeedSpec, items []FeedEntry, theTTY *tty.TTY, verbose bool) error {
 	i := 0
 	for {
 		if i >= len(items) {
 			return nil
 		}
 		item := items[i]
-		if urlWasSeen(item.URL) {
+		if urlWasSeen(item.EntryURL()) {
 			if verbose {
-				fmt.Printf("%10s %7s: %s\n", fs.ShortName, "SEEN", item.Title)
+				fmt.Printf("%10s %7s: %s\n", fs.ShortName, "SEEN", item.EntryTitle())
 			}
 			i++
 		} else {
-			fmt.Printf("%10s %7s: %s\n", fs.ShortName, "NEW", item.Title)
-			fmt.Printf("%10s %7s: %s\n", fs.ShortName, "", item.URL)
+			fmt.Printf("%10s %7s: %s\n", fs.ShortName, "NEW", item.EntryTitle())
+			fmt.Printf("%10s %7s: %s\n", fs.ShortName, "", item.EntryURL())
 			fmt.Print("? ")
 			c := readChar(theTTY)
 			fmt.Println("")
 			switch c {
 			case "P":
 				postItem(item, theTTY)
-				recordURL(item.URL)
+				recordURL(item.EntryURL())
 				i++
 			case "s":
 				i++
@@ -99,9 +99,9 @@ func HandleFeed(fs FeedSpec, items []GenericFeedEntry, theTTY *tty.TTY, verbose 
 				i++
 			case "x":
 				i++
-				recordURL(item.URL)
+				recordURL(item.EntryURL())
 			case "o":
-				macOpen(item.URL)
+				macOpen(item.EntryURL())
 			case "N":
 				if verbose {
 					fmt.Println("\nWill stop processing articles in this feed....")
@@ -120,7 +120,7 @@ func HandleFeed(fs FeedSpec, items []GenericFeedEntry, theTTY *tty.TTY, verbose 
 					if i == 0 {
 						break
 					}
-					if !urlWasSeen(items[i].URL) {
+					if !urlWasSeen(items[i].EntryURL()) {
 						break
 					}
 					i--
@@ -164,7 +164,7 @@ func main() {
 		return
 	}
 	for _, fs := range getRssFeedURLs() {
-		items, err := getRssFeedItems(fs, verbose)
+		items, err := getFeedItems(fs, verbose)
 		if err != nil {
 			log.Fatal(err)
 		}

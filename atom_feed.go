@@ -5,31 +5,35 @@ import (
 )
 
 type AtomFeed struct {
-	AtomTag xml.Name `xml:"feed"`
-	Title   string   `xml:"title"`
-	Items   []Entry  `xml:"entry"`
+	AtomTag xml.Name    `xml:"feed"`
+	Title   string      `xml:"title"`
+	Items   []AtomEntry `xml:"entry"`
 }
 
-type Link struct {
+type AtomLink struct {
 	Href string `xml:"href,attr"`
 }
 
-type Entry struct {
+type AtomEntry struct {
 	XMLName xml.Name `xml:"entry"`
 	Title   string   `xml:"title"`
-	URL     Link     `xml:"link"`
+	URL     AtomLink `xml:"link"`
 }
 
-func atomToGeneric(entry Entry) GenericFeedEntry {
-	return GenericFeedEntry{entry.Title, entry.URL.Href}
+func (e AtomEntry) EntryTitle() string {
+	return e.Title
 }
 
-func AtomFeedItems(rawFeedData []byte) []GenericFeedEntry {
+func (e AtomEntry) EntryURL() string {
+	return e.URL.Href
+}
+
+func AtomFeedItems(rawFeedData []byte) []FeedEntry {
 	feed := AtomFeed{}
 	xml.Unmarshal(rawFeedData, &feed)
-	ret := []GenericFeedEntry{}
+	ret := []FeedEntry{}
 	for _, item := range feed.Items {
-		ret = append(ret, atomToGeneric(item))
+		ret = append(ret, item)
 	}
 	return ret
 }
