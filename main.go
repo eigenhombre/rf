@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/mattn/go-tty"
 )
@@ -34,7 +35,12 @@ type FeedSpec struct {
 	FeedType  int
 }
 
-func getRssFeedURLs() []FeedSpec {
+type FeedWithEntries struct {
+	FeedSpec
+	Items []FeedEntry
+}
+
+func allFeedSpecs() []FeedSpec {
 	return []FeedSpec{
 		{"NYTTECH", "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml", RSSType},
 		{"NYTSCI", "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml", RSSType},
@@ -46,37 +52,37 @@ func getRssFeedURLs() []FeedSpec {
 		{"ILLUS", "http://illustrationart.blogspot.com/feeds/posts/default", AtomType},
 		{"MUDDY", "https://www.muddycolors.com/feed/", RSSType},
 		{"GURNEY", "http://gurneyjourney.blogspot.com/feeds/posts/default", AtomType},
+		{"PG", "http://www.aaronsw.com/2002/feeds/pgessays.rss", RSSType},
 	}
 }
 
 func getFeedItems(fs FeedSpec, verbose bool) ([]FeedEntry, error) {
-	if verbose {
-		fmt.Printf("Handling feed '%s' (%s)....\n", fs.ShortName, fs.URL)
-	}
 	body, err := RawFeedData(fs.URL)
 	if err != nil {
 		return nil, err
 	}
 	if verbose {
-		fmt.Printf("Got %d bytes in XML body.\n", len(body))
+		fmt.Printf("Got %d bytes for %s.\n", len(body), fs.ShortName)
 	}
-	switch fs.FeedType { // FIXME: make and use a method
+	switch fs.FeedType {
 	case RSSType:
-		return RSSFeedItems(body), nil
+		items := RSSFeedItems(body)
+		return items, nil
 	case AtomType:
-		return AtomFeedItems(body), nil
+		items := AtomFeedItems(body)
+		return items, nil
 	default:
 		return nil, fmt.Errorf("bad feed type, %v", fs.FeedType)
 	}
 }
 
-func HandleFeed(fs FeedSpec, items []FeedEntry, theTTY *tty.TTY, verbose bool) error {
+func HandleFeed(fs FeedWithEntries, theTTY *tty.TTY, verbose bool) error {
 	i := 0
 	for {
-		if i >= len(items) {
+		if i >= len(fs.Items) {
 			return nil
 		}
-		item := items[i]
+		item := fs.Items[i]
 		if urlWasSeen(item.EntryURL()) {
 			if verbose {
 				fmt.Printf("%10s %7s: %s\n", fs.ShortName, "SEEN", item.EntryTitle())
@@ -84,7 +90,7 @@ func HandleFeed(fs FeedSpec, items []FeedEntry, theTTY *tty.TTY, verbose bool) e
 			i++
 		} else {
 			fmt.Printf("%10s %7s: %s\n", fs.ShortName, "NEW", item.EntryTitle())
-			fmt.Printf("%10s %7s: %s\n", fs.ShortName, "", item.EntryURL())
+			fmt.Printf("%10s %7s  %s\n", "", "", item.EntryURL())
 			fmt.Print("? ")
 			c := readChar(theTTY)
 			fmt.Println("")
@@ -120,13 +126,13 @@ func HandleFeed(fs FeedSpec, items []FeedEntry, theTTY *tty.TTY, verbose bool) e
 					if i == 0 {
 						break
 					}
-					if !urlWasSeen(items[i].EntryURL()) {
+					if !urlWasSeen(fs.Items[i].EntryURL()) {
 						break
 					}
 					i--
 				}
 			case "B":
-				i = len(items) - 1
+				i = len(fs.Items) - 1
 			case "?":
 				fmt.Println(`
 				N next feed
@@ -163,12 +169,24 @@ func main() {
 		// Usage() is called inside Parse
 		return
 	}
-	for _, fs := range getRssFeedURLs() {
-		items, err := getFeedItems(fs, verbose)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = HandleFeed(fs, items, stdin, verbose)
+	feedSpecs := allFeedSpecs()
+	ch := make(chan FeedWithEntries, len(feedSpecs))
+	var wg sync.WaitGroup
+	for _, fs := range feedSpecs {
+		wg.Add(1)
+		go func(fs FeedSpec) {
+			defer wg.Done()
+			items, err := getFeedItems(fs, verbose)
+			if err != nil {
+				log.Fatal(err)
+			}
+			ch <- FeedWithEntries{fs, items}
+		}(fs)
+	}
+	wg.Wait()
+	close(ch)
+	for fwe := range ch {
+		err = HandleFeed(fwe, stdin, verbose)
 		if err == io.EOF {
 			break
 		}
