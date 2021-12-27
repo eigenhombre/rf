@@ -108,6 +108,14 @@ func HandleFeed(fs FeedWithEntries, theTTY *tty.TTY, verbose bool) error {
 				recordURL(item.EntryURL())
 			case "o":
 				macOpen(item.EntryURL())
+			case "X":
+				if verbose {
+					fmt.Println("\nMarking all articles in feed as read...")
+				}
+				for _, ir := range fs.Items {
+					recordURL(ir.EntryURL())
+				}
+				return nil
 			case "N":
 				if verbose {
 					fmt.Println("\nWill stop processing articles in this feed....")
@@ -141,7 +149,8 @@ func HandleFeed(fs FeedWithEntries, theTTY *tty.TTY, verbose bool) error {
 				p prev article
 				s skip article for now
 				n skip article for now
-				x mark article done
+				x mark article read
+				X mark all articles in feed as read
 				o open
 				q quit program
 				`)

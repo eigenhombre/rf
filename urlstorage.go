@@ -9,7 +9,7 @@ import (
 	"regexp"
 )
 
-func metaDataFilePath(url string) string {
+func metaDataFilePath(url string) (x string) {
 	var stripFront = regexp.MustCompile(`^http(?:s)\:\/\/`)
 	var feedFile = stripFront.ReplaceAllString(url, "")
 	return removeFileExtension(feedStateDir + "/" + feedFile)
@@ -31,6 +31,7 @@ func spit(fileName string, content string) {
 	writer := bufio.NewWriter(file)
 	writer.WriteString(content)
 	defer writer.Flush()
+	defer file.Close()
 }
 
 func recordURL(url string) {

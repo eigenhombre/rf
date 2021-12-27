@@ -19,6 +19,7 @@ type RSSItem struct {
 	XMLName xml.Name `xml:"item"`
 	Title   string   `xml:"title"`
 	URL     string   `xml:"link"`
+	Guid    string   `xml:"guid"`
 }
 
 func (r RSSItem) EntryTitle() string {
@@ -34,6 +35,10 @@ func RSSFeedItems(rawFeedData []byte) []FeedEntry {
 	xml.Unmarshal(rawFeedData, &feed)
 	ret := []FeedEntry{}
 	for _, item := range feed.Channel.Items {
+		// For some reason NYT URLs don't parse but `guid` does:
+		if item.URL == "" {
+			item.URL = item.Guid
+		}
 		ret = append(ret, item)
 	}
 	return ret
