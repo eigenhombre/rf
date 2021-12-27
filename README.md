@@ -63,7 +63,7 @@ I wrote this small feed reader in Go because I was unhappy with my Web-based opt
     PCLOJURE    SEEN: A Christmas Card in Clojure
     PCLOJURE     NEW: Advent of Code: Day 21 - Dirac Dice
                         https://andreyorst.gitlab.io/posts/2021-12-21-advent-of-code-day-21/
-    ? o
+    ? o   # OPENS ARTICLE IN WEB BROWSER
     PCLOJURE     NEW: Advent of Code: Day 21 - Dirac Dice
                         https://andreyorst.gitlab.io/posts/2021-12-21-advent-of-code-day-21/
     ? q
