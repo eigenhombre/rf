@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,6 +14,19 @@ import (
 
 func mkdirIfNotExists(dirName string) error {
 	return os.MkdirAll(dirName, 0755)
+}
+
+func spit(fileName string, content string) {
+	dirName := path.Dir(fileName)
+	mkdirIfNotExists(dirName)
+	file, err := os.Create(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	writer := bufio.NewWriter(file)
+	writer.WriteString(content)
+	defer writer.Flush()
+	defer file.Close()
 }
 
 func removeFileExtension(fileName string) string {

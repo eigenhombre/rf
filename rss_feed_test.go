@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,10 +10,12 @@ import (
 const exampleRSSFeedSingleItem = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
 	<channel>
-		<title>Foo Technology</title>
+		<title>
+		Foo Technology</title>
 		<item>
 			<title>Strongly Lettered Word</title>
-			<link>http://johnj.com/bazzy.html</link>
+			<link>
+			http://johnj.com/bazzy.html</link>
 			<guid isPermaLink="true">http://johnj.com/bazzy.html</guid>
 		</item>
 	</channel>
@@ -23,5 +26,6 @@ func TestRSSFeedItems(t *testing.T) {
 	items := RSSFeedItems(rawData)
 	assert.Equal(t, len(items), 1)
 	assert.Equal(t, items[0].EntryTitle(), "Strongly Lettered Word")
+	fmt.Println(items[0])
 	assert.Equal(t, items[0].EntryURL(), "http://johnj.com/bazzy.html")
 }

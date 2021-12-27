@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/xml"
+	"strings"
 )
 
 type RSSFeed struct {
@@ -27,7 +28,10 @@ func (r RSSItem) EntryTitle() string {
 }
 
 func (r RSSItem) EntryURL() string {
-	return r.URL
+	if len(r.URL) > 0 {
+		return r.URL
+	}
+	return r.Guid
 }
 
 func RSSFeedItems(rawFeedData []byte) []FeedEntry {
@@ -35,10 +39,8 @@ func RSSFeedItems(rawFeedData []byte) []FeedEntry {
 	xml.Unmarshal(rawFeedData, &feed)
 	ret := []FeedEntry{}
 	for _, item := range feed.Channel.Items {
-		// For some reason NYT URLs don't parse but `guid` does:
-		if item.URL == "" {
-			item.URL = item.Guid
-		}
+		item.URL = strings.TrimSpace(item.URL)
+		item.Guid = strings.TrimSpace(item.Guid)
 		ret = append(ret, item)
 	}
 	return ret
