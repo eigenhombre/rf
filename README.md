@@ -1,4 +1,7 @@
-# fs - RSS/Atom "Feed Scanner"
+# fs
 
-<img src="/nightscan.jpg" width="400">
+
+<img src="/nightscan.jpeg" width="400">
+
+An RSS/Atom "feed scanner"
 
