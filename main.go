@@ -93,7 +93,7 @@ func HandleFeed(fs FeedWithEntries, theTTY *tty.TTY, verbose bool) error {
 			fmt.Printf("%10s %7s  %s\n", "", "", item.EntryURL())
 			fmt.Print("? ")
 			c := readChar(theTTY)
-			fmt.Println("")
+			fmt.Println(c)
 			switch c {
 			case "P":
 				postItem(item, theTTY)
