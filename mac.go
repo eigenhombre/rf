@@ -5,8 +5,8 @@ import (
 	"os/exec"
 )
 
-// PbCopy sends `data` to the Mac clipboard (e.g. for posting to HN)
-func PbCopy(data string) {
+// pbCopy sends `data` to the Mac clipboard (e.g. for posting to HN)
+func pbCopy(data string) {
 	pbcopyCmd := exec.Command("pbcopy")
 	pbcopyIn, _ := pbcopyCmd.StdinPipe()
 	pbcopyCmd.Start()

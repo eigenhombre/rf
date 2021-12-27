@@ -1,4 +1,4 @@
-module github.com/eigenhombre/technn
+module github.com/eigenhombre/fs
 
 go 1.17
 

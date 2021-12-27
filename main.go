@@ -18,10 +18,10 @@ const (
 func postItem(item FeedEntry, theTTY *tty.TTY) {
 	fmt.Printf("Posting %q...\n", item)
 	macOpen("https://news.ycombinator.com/submit")
-	PbCopy(item.EntryTitle())
+	pbCopy(item.EntryTitle())
 	fmt.Println("ANY KEY TO COPY URL...")
 	_ = readChar(theTTY)
-	PbCopy(item.EntryURL())
+	pbCopy(item.EntryURL())
 }
 
 const (
