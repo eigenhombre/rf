@@ -10,14 +10,15 @@ I wrote this small feed reader because I was unhappy with my Web-based options.
 # Features
 ## Current
 
-- Completely text-based (except for actual viewing / posting of articles)
-- Cross-post to Hacker News
-- Single-keystroke-driven
+- Completely text-based (except for actual viewing / posting of articles);
+- Cross-post to Hacker News;
+- Single-keystroke-driven;
+- Fetch all feeds in parallel to minimize latency;
 - Workflow otherwise similar in feel to [`rn`](https://en.wikipedia.org/wiki/Rn_(newsreader)).  (You may have to be over 50 and/or have other problems for this to have any appeal.)
 
 ## Planned
 
-- Configurable list of feeds (JSON and/or YAML)
+- Configurable list of feeds (JSON and/or YAML);
 - Maybe: provide in-band, plain-text preview of text contents.
 
 # Implementation
