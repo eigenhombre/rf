@@ -7,11 +7,25 @@ A terminal-based RSS/Atom "feed scanner," slightly reminiscent of [a certain '80
 
 I wrote this small feed reader in Go because I was unhappy with my Web-based options.  I am still adding features but am posting it on GitHub to document my progress (I am new to Go).
 
+# Implementation
+
+Implemented in Go.  Currently the `o` and `P` commands only work on MacOS.
+
+# Build
+
+Check out this repo, then
+
+    go build .
+
 # Usage
+
+## Command Line Options
 
     fs -h         # Show help
     fs -verbose   # Scan feeds verbosely
     fs            # Scan feeds; press `-h` for help
+
+## Example
 
     08:10:26 fs 37.7F     ≡ * ☐ ~ (master) >  fs -verbose
     Got 24910 bytes for PG.
@@ -36,6 +50,21 @@ I wrote this small feed reader in Go because I was unhappy with my Web-based opt
         PLISP    SEEN: vindarel: Lisp for the web: pagination and cleaning up HTML with LQuery
         PLISP     NEW: Stelian Ionescu: On New IDEs
                         https://blog.cddr.org/posts/2021-11-23-on-new-ides/
+
+## Press `?` for available keystrokes / commands:
+    ? ?
+				N next feed
+				B bottom of feed
+				P post
+				p prev article
+				s skip article for now
+				n skip article for now
+				x mark article read
+				X mark all articles in feed as read
+				o open
+				q quit program
+
+## Press `x` to mark an article read:
     ? x
         PLISP    SEEN: Tim Bradshaw: The endless droning
         PGO    SEEN: The most popular Go items of 2021
@@ -46,29 +75,12 @@ I wrote this small feed reader in Go because I was unhappy with my Web-based opt
     NYTTECH    SEEN: Navigational Apps for the Blind Could Have a Broader Appeal
     PCLOJURE     NEW: Advent of Code: Day 25 - Sea Cucumber
                         https://andreyorst.gitlab.io/posts/2021-12-25-advent-of-code-day-25/
-    ? x
-    PCLOJURE    SEEN: Fermat's Christmas Theorem : Fixed Points Come In Pairs
-    PCLOJURE    SEEN: Christmas Theorem: Some Early Orbits
-    PCLOJURE    SEEN: Clojure CLI tools - which execution option to use
-    PCLOJURE    SEEN: News
-    PCLOJURE     NEW: Middle Business Analyst
-                        https://agiliway.com/middle-business-analyst-2/
-    ? x
-    PCLOJURE    SEEN: Simple Component Driven ClojureScript
-    PCLOJURE    SEEN: Clojure Deref (Dec 23, 2021)
-    PCLOJURE    SEEN: Full Stack Software Engineer at Urbest
-    PCLOJURE    SEEN: Best Python IDEs for Data Science!
-    PCLOJURE    SEEN: Full Stack Developer at Edgewood Software Corp.
-    PCLOJURE    SEEN: CIDER 1.2 (Nice)
-    PCLOJURE    SEEN: A Christmas Card in Clojure
-    PCLOJURE     NEW: Advent of Code: Day 21 - Dirac Dice
-                        https://andreyorst.gitlab.io/posts/2021-12-21-advent-of-code-day-21/
+
+## Press `o` to open an article in your browser:
+
     ? o   # OPENS ARTICLE IN WEB BROWSER
     PCLOJURE     NEW: Advent of Code: Day 21 - Dirac Dice
                         https://andreyorst.gitlab.io/posts/2021-12-21-advent-of-code-day-21/
+
+## `q` quits:
     ? q
-
-
-    OK, See ya!
-    OK
-
