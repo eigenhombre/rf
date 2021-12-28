@@ -5,11 +5,24 @@
 
 `rf` is a terminal-based RSS/Atom feed reader, slightly reminiscent of [a certain '80s-era Usenet news reader](https://en.wikipedia.org/wiki/Rn_(newsreader)).
 
-I wrote this small feed reader in Go because I was unhappy with my Web-based options.  I am still adding features but am posting it on GitHub to document my progress (I am new to Go).
+I wrote this small feed reader because I was unhappy with my Web-based options.
+
+# Features
+## Current
+
+- Completely text-based (except for actual viewing / posting of articles)
+- Cross-post to Hacker News
+- Single-keystroke-driven
+- Workflow otherwise similar in feel to [`rn`](https://en.wikipedia.org/wiki/Rn_(newsreader)).  (You may have to be over 50 and/or have other problems for this to have any appeal.)
+
+## Planned
+
+- Configurable list of feeds (JSON and/or YAML)
+- Maybe: provide in-band, plain-text preview of text contents.
 
 # Implementation
 
-Implemented in Go.  Currently the `o` and `P` commands only work on MacOS.
+Implemented in Go.  Currently the `o` and `P` commands only work on MacOS.  PRs for other platforms will be enthusiastically reviewed.
 
 # Build
 
