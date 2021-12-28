@@ -21,6 +21,7 @@ type RSSItem struct {
 	Title   string   `xml:"title"`
 	URL     string   `xml:"link"`
 	Guid    string   `xml:"guid"`
+	fs      FeedSpec
 }
 
 func (r RSSItem) EntryTitle() string {
@@ -34,13 +35,18 @@ func (r RSSItem) EntryURL() string {
 	return r.Guid
 }
 
-func RSSFeedItems(rawFeedData []byte) []FeedEntry {
+func (r RSSItem) Feed() FeedSpec {
+	return r.fs
+}
+
+func RSSFeedItems(fs FeedSpec, rawFeedData []byte) []FeedEntry {
 	feed := RSSFeed{}
 	xml.Unmarshal(rawFeedData, &feed)
 	ret := []FeedEntry{}
 	for _, item := range feed.Channel.Items {
 		item.URL = strings.TrimSpace(item.URL)
 		item.Guid = strings.TrimSpace(item.Guid)
+		item.fs = fs
 		ret = append(ret, item)
 	}
 	return ret
