@@ -3,7 +3,7 @@
 
 <img src="/nightscan.jpeg" width="400">
 
-`rf` is a terminal-based RSS/Atom "feed scanner," slightly reminiscent of [a certain '80s-era Usenet news reader](https://en.wikipedia.org/wiki/Rn_(newsreader)).
+`rf` is a terminal-based RSS/Atom feed reader, slightly reminiscent of [a certain '80s-era Usenet news reader](https://en.wikipedia.org/wiki/Rn_(newsreader)).
 
 I wrote this small feed reader in Go because I was unhappy with my Web-based options.  I am still adding features but am posting it on GitHub to document my progress (I am new to Go).
 
