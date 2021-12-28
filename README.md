@@ -78,9 +78,11 @@ Check out this repo, then
 
 ## Press `o` to open an article in your browser:
 
-    ? o   # OPENS ARTICLE IN WEB BROWSER
+    ? o
     PCLOJURE     NEW: Advent of Code: Day 21 - Dirac Dice
                         https://andreyorst.gitlab.io/posts/2021-12-21-advent-of-code-day-21/
+
+(Will use your default Web browser -- **only works on MacOS** currently.)
 
 ## `q` quits:
     ? q
