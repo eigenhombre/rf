@@ -1,9 +1,9 @@
-# fs
+# rf
 
 
 <img src="/nightscan.jpeg" width="400">
 
-A terminal-based RSS/Atom "feed scanner," slightly reminiscent of [a certain '80s-era Usenet news reader](https://en.wikipedia.org/wiki/Rn_(newsreader)).
+`rf` is a terminal-based RSS/Atom "feed scanner," slightly reminiscent of [a certain '80s-era Usenet news reader](https://en.wikipedia.org/wiki/Rn_(newsreader)).
 
 I wrote this small feed reader in Go because I was unhappy with my Web-based options.  I am still adding features but am posting it on GitHub to document my progress (I am new to Go).
 
@@ -21,13 +21,13 @@ Check out this repo, then
 
 ## Command Line Options
 
-    fs -h         # Show help
-    fs -verbose   # Scan feeds verbosely
-    fs            # Scan feeds; press `-h` for help
+    rf -h         # Show help
+    rf -verbose   # Scan feeds verbosely
+    rf            # Scan feeds; press `-h` for help
 
 ## Example
 
-    08:10:26 fs 37.7F     ≡ * ☐ ~ (master) >  fs -verbose
+    $  rf -verbose
     Got 24910 bytes for PG.
     Got 52183 bytes for PLISP.
     Got 6004 bytes for PGO.

@@ -1,4 +1,4 @@
-module github.com/eigenhombre/fs
+module github.com/eigenhombre/rf
 
 go 1.17
 
