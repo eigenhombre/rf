@@ -51,6 +51,7 @@ Check out this repo, then
 
     x mark article read
     o open article in browser
+    u mark article unread
     H post on Hacker News (must be logged in)
 
     A last article
