@@ -87,16 +87,17 @@ func showItem(item FeedEntry) {
 func scanItems(pos, dir int, items []FeedEntry, verbose bool) (int, bool) {
 	for {
 		if pos >= len(items) {
-			return len(items) - 1, true
+			pos = len(items) - 1
+			// showItem(items[pos])
+			return pos, true
 		}
 		if pos < 0 {
-			return len(items) - 1, true
+			pos = 0
+			// showItem(items[pos])
+			return 0, true
 		}
 		item := items[pos]
 		if urlWasSeen(item.EntryURL()) {
-			if verbose {
-				showSeenItem(item)
-			}
 			if dir == DIR_FORWARD {
 				pos++
 			} else {
@@ -135,6 +136,7 @@ func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 		case "N":
 			i++
 			i, _ = scanItems(i, DIR_FORWARD, items, verbose)
+			showItem(items[i])
 		case "p":
 			i--
 			if i < 0 {
@@ -144,6 +146,7 @@ func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 		case "P":
 			i--
 			i, _ = scanItems(i, DIR_BACKWARD, items, verbose)
+			showItem(items[i])
 		case "F":
 			i = 0
 			showItem(items[i])
