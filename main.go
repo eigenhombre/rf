@@ -52,9 +52,6 @@ func getFeedItems(fs FeedSpec, verbose bool) ([]FeedEntry, error) {
 	if err != nil {
 		return nil, err
 	}
-	if verbose {
-		fmt.Printf("Got %d bytes for %s.\n", len(body), fs.ShortName)
-	}
 	switch fs.FeedType {
 	case RSSType:
 		return RSSFeedItems(fs, body), nil
@@ -221,11 +218,17 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
+			if verbose {
+				fmt.Printf("%12s: %d items found\n", fs.ShortName, len(items))
+			} else {
+				fmt.Print(".")
+			}
 			ch <- items
 		}(fs)
 	}
 	wg.Wait()
 	close(ch)
+	fmt.Println("")
 	var procItems []FeedEntry = []FeedEntry{}
 	for items := range ch {
 		procItems = append(procItems, items...)
