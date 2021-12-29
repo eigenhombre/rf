@@ -56,3 +56,4 @@ Check out this repo, then
     A last article
     q quit program
 
+    ? this help message

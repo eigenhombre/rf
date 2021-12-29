@@ -183,6 +183,8 @@ func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 
 			A last article
 			q quit program
+
+			? this help message
 			`)
 		}
 	}
