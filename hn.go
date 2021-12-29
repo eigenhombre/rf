@@ -10,7 +10,7 @@ import (
 // to send values to the Submit page (you must be logged into
 // the site).
 func postItem(item FeedEntry, theTTY *tty.TTY) {
-	fmt.Printf("Posting %q...\n", item)
+	fmt.Printf("Posting '%s'...\n", item.EntryTitle())
 	macOpen("https://news.ycombinator.com/submit")
 	pbCopy(item.EntryTitle())
 	fmt.Println("ANY KEY TO COPY URL...")

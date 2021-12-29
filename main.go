@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"sync"
@@ -66,85 +65,125 @@ func getFeedItems(fs FeedSpec, verbose bool) ([]FeedEntry, error) {
 	}
 }
 
-func HandleFeed(items []FeedEntry, theTTY *tty.TTY, verbose bool) error {
-	i := 0
+const (
+	DIR_FORWARD = iota
+	DIR_BACKWARD
+)
+
+func showSeenItem(item FeedEntry) {
+	fmt.Printf("%12s %7s: %s\n", item.Feed().ShortName, "SEEN", item.EntryTitle())
+}
+
+func showNewItem(item FeedEntry) {
+	fmt.Printf("%12s %7s: %s\n", item.Feed().ShortName, "NEW", item.EntryTitle())
+	fmt.Printf("%12s %7s  %s\n", "", "", item.EntryURL())
+}
+
+func showItem(item FeedEntry) {
+	if urlWasSeen(item.EntryURL()) {
+		showSeenItem(item)
+	} else {
+		showNewItem(item)
+	}
+}
+
+func scanItems(pos, dir int, items []FeedEntry, verbose bool) (int, bool) {
 	for {
-		if i >= len(items) {
-			return nil
+		if pos >= len(items) {
+			return len(items) - 1, true
 		}
-		item := items[i]
+		if pos < 0 {
+			return len(items) - 1, true
+		}
+		item := items[pos]
 		if urlWasSeen(item.EntryURL()) {
 			if verbose {
-				fmt.Printf("%10s %7s: %s\n", item.Feed().ShortName, "SEEN", item.EntryTitle())
+				showSeenItem(item)
 			}
-			i++
+			if dir == DIR_FORWARD {
+				pos++
+			} else {
+				pos--
+			}
 		} else {
-			fmt.Printf("%10s %7s: %s\n", item.Feed().ShortName, "NEW", item.EntryTitle())
-			fmt.Printf("%10s %7s  %s\n", "", "", item.EntryURL())
-			fmt.Print("? ")
-			c := readChar(theTTY)
-			fmt.Println(c)
-			switch c {
-			case "P":
-				postItem(item, theTTY)
-				recordURL(item.EntryURL())
-				i++
-			case "s":
-				i++
-			case "n":
-				i++
-			case "x":
-				i++
-				recordURL(item.EntryURL())
-			case "o":
-				macOpen(item.EntryURL())
-			case "X":
-				if verbose {
-					fmt.Println("\nMarking all articles in feed as read...")
-				}
-				for _, ir := range items {
-					recordURL(ir.EntryURL())
-				}
-				return nil
-			case "N":
-				if verbose {
-					fmt.Println("\nWill stop processing articles in this feed....")
-				}
-				return nil
-			case "q":
-				if verbose {
-					fmt.Println("\n\nOK, See ya!")
-				}
-				return io.EOF
-			case "p":
-				if i > 0 {
-					i--
-				}
-				for {
-					if i == 0 {
-						break
-					}
-					if !urlWasSeen(items[i].EntryURL()) {
-						break
-					}
-					i--
-				}
-			case "B":
+			showNewItem(item)
+			return pos, false
+		}
+	}
+}
+
+func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) error {
+	i := 0
+	i, done := scanItems(i, DIR_FORWARD, items, verbose)
+	if done && !repl {
+		return nil
+	}
+	for {
+		item := items[i]
+		fmt.Print("? ")
+		c := readChar(theTTY)
+		fmt.Println(c)
+		switch c {
+		case "H":
+			postItem(item, theTTY)
+			recordURL(item.EntryURL())
+			i++
+		case "n":
+			i++
+			if i >= len(items) {
 				i = len(items) - 1
-			case "?":
-				fmt.Println(`
-				N next feed
-				B bottom of feed
-				P post
-				p prev article
-				s skip article for now
-				n skip article for now
-				x mark article read
-				X mark all articles in feed as read
-				o open
-				q quit program
-				`)
 			}
+			showItem(items[i])
+		case "N":
+			i++
+			i, _ = scanItems(i, DIR_FORWARD, items, verbose)
+		case "p":
+			i--
+			if i < 0 {
+				i = 0
+			}
+			showItem(items[i])
+		case "P":
+			i--
+			i, _ = scanItems(i, DIR_BACKWARD, items, verbose)
+		case "F":
+			i = 0
+			showItem(items[i])
+		case "A":
+			i = len(items) - 1
+			showItem(items[i])
+		case "x":
+			recordURL(item.EntryURL())
+			i++
+			if i >= len(items) {
+				i = len(items) - 1
+			}
+			showItem(items[i])
+		case "o":
+			macOpen(item.EntryURL())
+		case "q":
+			if verbose {
+				fmt.Println("\n\nOK, See ya!")
+			}
+			return nil
+		case "?":
+			fmt.Println("USAGE:")
+			fmt.Println(`
+			F first article
+
+			p prev article (read or unread)
+			P prev unread article
+
+			n next article (read or unread)
+			N next unread article
+
+			x mark article read
+			o open article in browser
+			H post on Hacker News (must be logged in)
+
+			A last article
+			q quit program
+			`)
 		}
 	}
 }
@@ -161,8 +200,9 @@ func main() {
 		log.Fatal(err)
 	}
 	flagSet := flag.NewFlagSet("args", flag.ContinueOnError)
-	var verbose bool
+	var verbose, repl bool
 	flagSet.BoolVar(&verbose, "verbose", false, "verbose output")
+	flagSet.BoolVar(&repl, "repl", false, "always provide REPL")
 	err = flagSet.Parse(os.Args[1:])
 	if err != nil {
 		// Usage() is called inside Parse
@@ -184,11 +224,13 @@ func main() {
 	}
 	wg.Wait()
 	close(ch)
+	var procItems []FeedEntry = []FeedEntry{}
 	for items := range ch {
-		err = HandleFeed(items, stdin, verbose)
-		if err != nil {
-			log.Fatal(err)
-		}
+		procItems = append(procItems, items...)
+	}
+	InteractWithItems(procItems, stdin, verbose, repl)
+	if err != nil {
+		log.Fatal(err)
 	}
 	if verbose {
 		fmt.Println("OK")
