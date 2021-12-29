@@ -29,6 +29,10 @@ func spit(fileName string, content string) {
 	defer file.Close()
 }
 
+func rm(fileName string) error {
+	return os.Remove(fileName)
+}
+
 func removeFileExtension(fileName string) string {
 	return strings.TrimSuffix(
 		strings.TrimSuffix(fileName, path.Ext(fileName)),

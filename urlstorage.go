@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"log"
 	"os"
 	"regexp"
 )
@@ -20,4 +21,11 @@ func urlWasSeen(url string) bool {
 
 func recordURL(url string) {
 	spit(metaDataFilePath(url), "PLACEHOLDER")
+}
+
+func unRecordURL(url string) {
+	err := rm(metaDataFilePath(url))
+	if err != nil {
+		log.Fatal(err)
+	}
 }

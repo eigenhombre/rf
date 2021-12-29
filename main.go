@@ -156,6 +156,9 @@ func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 				i = len(items) - 1
 			}
 			showItem(items[i])
+		case "u":
+			unRecordURL(item.EntryURL())
+			showItem(item)
 		case "o":
 			macOpen(item.EntryURL())
 		case "q":
@@ -175,6 +178,7 @@ func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			N next unread article
 
 			x mark article read
+			u mark article unread
 			o open article in browser
 			H post on Hacker News (must be logged in)
 
