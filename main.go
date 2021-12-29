@@ -110,6 +110,7 @@ func scanItems(pos, dir int, items []FeedEntry, verbose bool) (int, bool) {
 }
 
 func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) error {
+	fmt.Println("")
 	i := 0
 	i, done := scanItems(i, DIR_FORWARD, items, verbose)
 	if done && !repl {
@@ -151,10 +152,7 @@ func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			showItem(items[i])
 		case "x":
 			recordURL(item.EntryURL())
-			i++
-			if i >= len(items) {
-				i = len(items) - 1
-			}
+			i, _ = scanItems(i, DIR_FORWARD, items, verbose)
 			showItem(items[i])
 		case "u":
 			unRecordURL(item.EntryURL())
@@ -232,15 +230,15 @@ func main() {
 	}
 	wg.Wait()
 	close(ch)
-	fmt.Println("")
+
+	// Consume and concatenate results:
 	var procItems []FeedEntry = []FeedEntry{}
 	for items := range ch {
 		procItems = append(procItems, items...)
 	}
+
 	InteractWithItems(procItems, stdin, verbose, repl)
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	if verbose {
 		fmt.Println("OK")
 	}
