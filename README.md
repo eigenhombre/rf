@@ -1,7 +1,8 @@
 # rf
 
-
 <img src="/nightscan.jpeg" width="400">
+
+![build](https://github.com/eigenhombre/rf/actions/workflows/build.yml/badge.svg)
 
 `rf` is a terminal-based RSS/Atom feed reader, slightly reminiscent of [a certain '80s-era Usenet news reader](https://en.wikipedia.org/wiki/Rn_(newsreader)).
 
