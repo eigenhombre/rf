@@ -15,16 +15,18 @@ const (
 )
 
 const (
-	RSSType = iota
-	AtomType
+	rssType = iota
+	atomType
 )
 
+// FeedSpec is a generic RSS/Atom feed specifier.
 type FeedSpec struct {
 	ShortName string
 	URL       string
 	FeedType  int
 }
 
+// FeedEntry is a generic RSS/Atom feed post type.
 type FeedEntry interface {
 	EntryTitle() string
 	EntryURL() string
@@ -33,38 +35,38 @@ type FeedEntry interface {
 
 func allFeedSpecs() []FeedSpec {
 	return []FeedSpec{
-		{"NYTTECH", "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml", RSSType},
-		{"NYTSCI", "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml", RSSType},
-		{"PLISP", "http://planet.lisp.org/rss20.xml", RSSType},
-		{"PCLOJURE", "http://planet.clojure.in/atom.xml", AtomType},
-		{"PGO", "https://planetgolang.dev/index.xml", AtomType},
-		{"MATT", "https://matthewrocklin.com/blog/atom.xml", AtomType},
-		{"PP", "https://paintingperceptions.com/feed", RSSType},
-		{"ILLUS", "http://illustrationart.blogspot.com/feeds/posts/default", AtomType},
-		{"MUDDY", "https://www.muddycolors.com/feed/", RSSType},
-		{"GURNEY", "http://gurneyjourney.blogspot.com/feeds/posts/default", AtomType},
-		{"PG", "http://www.aaronsw.com/2002/feeds/pgessays.rss", RSSType},
+		{"NYTTECH", "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml", rssType},
+		{"NYTSCI", "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml", rssType},
+		{"PLISP", "http://planet.lisp.org/rss20.xml", rssType},
+		{"PCLOJURE", "http://planet.clojure.in/atom.xml", atomType},
+		{"PGO", "https://planetgolang.dev/index.xml", atomType},
+		{"MATT", "https://matthewrocklin.com/blog/atom.xml", atomType},
+		{"PP", "https://paintingperceptions.com/feed", rssType},
+		{"ILLUS", "http://illustrationart.blogspot.com/feeds/posts/default", atomType},
+		{"MUDDY", "https://www.muddycolors.com/feed/", rssType},
+		{"GURNEY", "http://gurneyjourney.blogspot.com/feeds/posts/default", atomType},
+		{"PG", "http://www.aaronsw.com/2002/feeds/pgessays.rss", rssType},
 	}
 }
 
 func getFeedItems(fs FeedSpec, verbose bool) ([]FeedEntry, error) {
-	body, err := RawFeedData(fs.URL)
+	body, err := rawFeedData(fs.URL)
 	if err != nil {
 		return nil, err
 	}
 	switch fs.FeedType {
-	case RSSType:
-		return RSSFeedItems(fs, body), nil
-	case AtomType:
-		return AtomFeedItems(fs, body), nil
+	case rssType:
+		return rssFeedItems(fs, body), nil
+	case atomType:
+		return atomFeedItems(fs, body), nil
 	default:
 		return nil, fmt.Errorf("bad feed type, %v", fs.FeedType)
 	}
 }
 
 const (
-	DIR_FORWARD = iota
-	DIR_BACKWARD
+	dirForward = iota
+	dirBackward
 )
 
 func showSeenItem(item FeedEntry) {
@@ -98,7 +100,7 @@ func scanItems(pos, dir int, items []FeedEntry, verbose bool) (int, bool) {
 		}
 		item := items[pos]
 		if urlWasSeen(item.EntryURL()) {
-			if dir == DIR_FORWARD {
+			if dir == dirForward {
 				pos++
 			} else {
 				pos--
@@ -110,10 +112,10 @@ func scanItems(pos, dir int, items []FeedEntry, verbose bool) (int, bool) {
 	}
 }
 
-func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) error {
+func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) error {
 	fmt.Println("")
 	i := 0
-	i, done := scanItems(i, DIR_FORWARD, items, verbose)
+	i, done := scanItems(i, dirForward, items, verbose)
 	if done && !repl {
 		return nil
 	}
@@ -135,7 +137,7 @@ func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			showItem(items[i])
 		case "N":
 			i++
-			i, _ = scanItems(i, DIR_FORWARD, items, verbose)
+			i, _ = scanItems(i, dirForward, items, verbose)
 			showItem(items[i])
 		case "p":
 			i--
@@ -145,7 +147,7 @@ func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			showItem(items[i])
 		case "P":
 			i--
-			i, _ = scanItems(i, DIR_BACKWARD, items, verbose)
+			i, _ = scanItems(i, dirBackward, items, verbose)
 			showItem(items[i])
 		case "F":
 			i = 0
@@ -155,7 +157,7 @@ func InteractWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			showItem(items[i])
 		case "x":
 			recordURL(item.EntryURL())
-			i, _ = scanItems(i, DIR_FORWARD, items, verbose)
+			i, _ = scanItems(i, dirForward, items, verbose)
 			showItem(items[i])
 		case "u":
 			unRecordURL(item.EntryURL())
@@ -240,7 +242,7 @@ func main() {
 		procItems = append(procItems, items...)
 	}
 
-	InteractWithItems(procItems, stdin, verbose, repl)
+	interactWithItems(procItems, stdin, verbose, repl)
 
 	if verbose {
 		fmt.Println("OK")

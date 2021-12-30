@@ -5,47 +5,51 @@ import (
 	"strings"
 )
 
-type RSSFeed struct {
+type rssFeed struct {
 	RSSVersion xml.Name   `xml:"rss"`
-	Channel    RSSChannel `xml:"channel"`
+	Channel    rssChannel `xml:"channel"`
 }
 
-type RSSChannel struct {
-	XMLName xml.Name  `xml:"channel"`
-	Title   string    `xml:"title"`
-	Items   []RSSItem `xml:"item"`
+type rssChannel struct {
+	XMLName xml.Name   `xml:"channel"`
+	Title   string     `xml:"title"`
+	Items   []RSSEntry `xml:"item"`
 }
 
-type RSSItem struct {
+// RSSEntry is an entry / blog post for an RSS feed.
+type RSSEntry struct {
 	XMLName xml.Name `xml:"item"`
 	Title   string   `xml:"title"`
 	URL     string   `xml:"link"`
-	Guid    string   `xml:"guid"`
+	GUID    string   `xml:"guid"`
 	fs      FeedSpec
 }
 
-func (r RSSItem) EntryTitle() string {
+// EntryTitle returns an RSS post's title.
+func (r RSSEntry) EntryTitle() string {
 	return r.Title
 }
 
-func (r RSSItem) EntryURL() string {
+// EntryURL returns an RSS post's URL.
+func (r RSSEntry) EntryURL() string {
 	if len(r.URL) > 0 {
 		return r.URL
 	}
-	return r.Guid
+	return r.GUID
 }
 
-func (r RSSItem) Feed() FeedSpec {
+// Feed returns the feed specifier for a given RSS feed item.
+func (r RSSEntry) Feed() FeedSpec {
 	return r.fs
 }
 
-func RSSFeedItems(fs FeedSpec, rawFeedData []byte) []FeedEntry {
-	feed := RSSFeed{}
+func rssFeedItems(fs FeedSpec, rawFeedData []byte) []FeedEntry {
+	feed := rssFeed{}
 	xml.Unmarshal(rawFeedData, &feed)
 	ret := []FeedEntry{}
 	for _, item := range feed.Channel.Items {
 		item.URL = strings.TrimSpace(item.URL)
-		item.Guid = strings.TrimSpace(item.Guid)
+		item.GUID = strings.TrimSpace(item.GUID)
 		item.fs = fs
 		ret = append(ret, item)
 	}

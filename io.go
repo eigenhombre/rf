@@ -49,7 +49,7 @@ func readChar(theTTY *tty.TTY) string {
 	return string(r)
 }
 
-func RawFeedData(endpoint string) ([]byte, error) {
+func rawFeedData(endpoint string) ([]byte, error) {
 	res, err := http.Get(endpoint)
 	if err != nil {
 		return nil, err
