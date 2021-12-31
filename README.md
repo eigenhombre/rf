@@ -32,6 +32,8 @@ Check out this repo, then
 
     go build .
 
+I'll set up `go get` eventually.
+
 # Usage
 
 ## Command Line Options
