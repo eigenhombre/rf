@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"log"
 	"os"
 	"regexp"
 )
@@ -23,9 +22,6 @@ func recordURL(url string) {
 	spit(metaDataFilePath(url), "PLACEHOLDER")
 }
 
-func unRecordURL(url string) {
-	err := rm(metaDataFilePath(url))
-	if err != nil {
-		log.Fatal(err)
-	}
+func unRecordURL(url string) error {
+	return rm(metaDataFilePath(url))
 }
