@@ -44,20 +44,21 @@ I'll set up `go get` eventually.
 
 ## Keyboard Commands
 
-    F first article
+			F first article
 
-    p prev article (read or unread)
-    P prev unread article
+			p prev article (read or unread)
+			P prev unread article
 
-    n next article (read or unread)
-    N next unread article
+			n next article (read or unread)
+			N next unread article
 
-    x mark article read
-    o open article in browser
-    u mark article unread
-    H post on Hacker News (must be logged in)
+			x mark article read
+			X mark all articles in feed read
+			u mark article unread
+			o open article in browser
+			H post on Hacker News (must be logged in)
 
-    A last article
-    q quit program
+			A last article
+			q quit program
 
-    ? this help message
+			? this help message
