@@ -8,7 +8,7 @@ deps:
 	go get .
 
 ${PROG}:
-	go build
+	go build .
 
 test:
 	go test
@@ -19,3 +19,6 @@ lint:
 
 clean:
 	rm ${PROG}
+
+install: all
+	go install .
