@@ -48,6 +48,7 @@ func allFeedSpecs() []FeedSpec {
 		{"PG", "http://www.aaronsw.com/2002/feeds/pgessays.rss", rssType},
 		{"FOGUS", "http://blog.fogus.me/feed", rssType},
 		{"KLIPSE", "https://blog.klipse.tech/feed.xml", atomType},
+		{"BORK", "https://blog.michielborkent.nl/atom.xml", atomType},
 	}
 }
 
@@ -177,6 +178,7 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			recordURL(item.EntryURL())
 			i, _ = scanItems(i, dirForward, items, verbose)
 		case "u":
+			// NOTE: Can return non-nil error if file doesn't exist, but we ignore it:
 			unRecordURL(item.EntryURL())
 			showItem(item)
 		case "o":
