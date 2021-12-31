@@ -46,6 +46,8 @@ func allFeedSpecs() []FeedSpec {
 		{"MUDDY", "https://www.muddycolors.com/feed/", rssType},
 		{"GURNEY", "http://gurneyjourney.blogspot.com/feeds/posts/default", atomType},
 		{"PG", "http://www.aaronsw.com/2002/feeds/pgessays.rss", rssType},
+		{"FOGUS", "http://blog.fogus.me/feed", rssType},
+		{"KLIPSE", "https://blog.klipse.tech/feed.xml", atomType},
 	}
 }
 
@@ -84,6 +86,19 @@ func showItem(item FeedEntry) {
 	} else {
 		showNewItem(item)
 	}
+}
+
+func markAllItemsInFeedRead(i int, items []FeedEntry, verbose bool) []FeedEntry {
+	thisFeed := items[i].Feed()
+	for _, item := range items {
+		if item.Feed() == thisFeed && !urlWasSeen(item.EntryURL()) {
+			recordURL(item.EntryURL())
+			if verbose {
+				showItem(item)
+			}
+		}
+	}
+	return items
 }
 
 func scanItems(pos, dir int, items []FeedEntry, verbose bool) (int, bool) {
@@ -138,7 +153,6 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 		case "N":
 			i++
 			i, _ = scanItems(i, dirForward, items, verbose)
-			showItem(items[i])
 		case "p":
 			i--
 			if i < 0 {
@@ -158,12 +172,18 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 		case "x":
 			recordURL(item.EntryURL())
 			i, _ = scanItems(i, dirForward, items, verbose)
-			showItem(items[i])
+		case "X":
+			items = markAllItemsInFeedRead(i, items, verbose)
+			recordURL(item.EntryURL())
+			i, _ = scanItems(i, dirForward, items, verbose)
 		case "u":
 			unRecordURL(item.EntryURL())
 			showItem(item)
 		case "o":
-			macOpen(item.EntryURL())
+			err := macOpen(item.EntryURL())
+			if err != nil {
+				fmt.Println(err)
+			}
 		case "q":
 			if verbose {
 				fmt.Println("\n\nOK, See ya!")
@@ -181,6 +201,7 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			N next unread article
 
 			x mark article read
+			X mark all articles in feed read
 			u mark article unread
 			o open article in browser
 			H post on Hacker News (must be logged in)

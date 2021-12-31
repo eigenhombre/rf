@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os/exec"
 )
 
@@ -16,10 +16,11 @@ func pbCopy(data string) {
 }
 
 // macOpen calls the open command on a URL or a file
-func macOpen(target string) {
+func macOpen(target string) error {
 	cmd := exec.Command("open", target)
 	err := cmd.Run()
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("unable to open %s", target)
 	}
+	return nil
 }
