@@ -113,16 +113,13 @@ func nextItem(pos, dir, changeKind int, items []FeedEntry, verbose bool) (int, b
 		if dir == dirForward {
 			if pos == len(items)-1 {
 				return pos, true
-			} else {
-				return pos + 1, false
 			}
-		} else {
-			if pos == 0 {
-				return pos, true
-			} else {
-				return pos - 1, false
-			}
+			return pos + 1, false
 		}
+		if pos == 0 {
+			return pos, true
+		}
+		return pos - 1, false
 	}
 	// Scan forward or backwards for unread items:
 	scanStarted := false
