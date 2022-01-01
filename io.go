@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,17 +15,19 @@ func mkdirIfNotExists(dirName string) error {
 	return os.MkdirAll(dirName, 0755)
 }
 
-func spit(fileName string, content string) {
+func spit(fileName string, contents string) error {
 	dirName := path.Dir(fileName)
 	mkdirIfNotExists(dirName)
-	file, err := os.Create(fileName)
+	ioutil.WriteFile(fileName, []byte(contents), 0644)
+	return nil
+}
+
+func slurp(fileName string) (string, error) {
+	body, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	writer := bufio.NewWriter(file)
-	writer.WriteString(content)
-	defer writer.Flush()
-	defer file.Close()
+	return string(body), nil
 }
 
 func rm(fileName string) error {

@@ -15,15 +15,15 @@ const (
 )
 
 const (
-	rssType = iota
-	atomType
+	rssType  = "rss"
+	atomType = "atom"
 )
 
 // FeedSpec is a generic RSS/Atom feed specifier.
 type FeedSpec struct {
-	ShortName string
-	URL       string
-	FeedType  int
+	ShortName string `json:"name"`
+	URL       string `json:"url"`
+	FeedType  string `json:"type"`
 }
 
 // FeedEntry is a generic RSS/Atom feed post type.
@@ -31,25 +31,6 @@ type FeedEntry interface {
 	EntryTitle() string
 	EntryURL() string
 	Feed() FeedSpec
-}
-
-func allFeedSpecs() []FeedSpec {
-	return []FeedSpec{
-		{"NYTTECH", "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml", rssType},
-		{"NYTSCI", "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml", rssType},
-		{"PLISP", "http://planet.lisp.org/rss20.xml", rssType},
-		{"PCLOJURE", "http://planet.clojure.in/atom.xml", atomType},
-		{"PGO", "https://planetgolang.dev/index.xml", atomType},
-		{"MATT", "https://matthewrocklin.com/blog/atom.xml", atomType},
-		{"PP", "https://paintingperceptions.com/feed", rssType},
-		{"ILLUS", "http://illustrationart.blogspot.com/feeds/posts/default", atomType},
-		{"MUDDY", "https://www.muddycolors.com/feed/", rssType},
-		{"GURNEY", "http://gurneyjourney.blogspot.com/feeds/posts/default", atomType},
-		{"PG", "http://www.aaronsw.com/2002/feeds/pgessays.rss", rssType},
-		{"FOGUS", "http://blog.fogus.me/feed", rssType},
-		{"KLIPSE", "https://blog.klipse.tech/feed.xml", atomType},
-		{"BORK", "https://blog.michielborkent.nl/atom.xml", atomType},
-	}
 }
 
 func getFeedItems(fs FeedSpec, verbose bool) ([]FeedEntry, error) {
@@ -244,7 +225,10 @@ func main() {
 		// Usage() is called inside Parse
 		return
 	}
-	feedSpecs := allFeedSpecs()
+	feedSpecs, err := serializedFeeds()
+	if err != nil {
+		log.Fatal(err)
+	}
 	ch := make(chan []FeedEntry, len(feedSpecs))
 	var wg sync.WaitGroup
 	for _, fs := range feedSpecs {
