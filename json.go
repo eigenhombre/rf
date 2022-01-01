@@ -32,7 +32,8 @@ func feedFileName() string {
 // }
 
 func serializedFeeds() ([]FeedSpec, error) {
-	body, err := slurp(feedFileName())
+	feedFile := feedFileName()
+	body, err := slurp(feedFile)
 	if err != nil {
 		return nil, err
 	}

@@ -206,13 +206,7 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 }
 
 func main() {
-	stdin, err := tty.Open()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer stdin.Close()
-
-	err = mkdirIfNotExists(feedStateDir)
+	err := mkdirIfNotExists(feedStateDir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -227,7 +221,22 @@ func main() {
 	}
 	feedSpecs, err := serializedFeeds()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(`There was a problem reading your feed configuration file.
+
+Create a file $HOME/.rffeeds as follows:
+
+[
+	{
+		"name": "PG",
+		"url": "http://www.aaronsw.com/2002/feeds/pgessays.rss",
+		"type": "rss"
+	  }
+]
+
+Then restart the program.
+		
+		`)
+		os.Exit(-1)
 	}
 	ch := make(chan []FeedEntry, len(feedSpecs))
 	var wg sync.WaitGroup
@@ -249,6 +258,12 @@ func main() {
 	}
 	wg.Wait()
 	close(ch)
+
+	stdin, err := tty.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stdin.Close()
 
 	// Consume and concatenate results:
 	var procItems []FeedEntry = []FeedEntry{}
