@@ -67,11 +67,6 @@ func getFeedItems(fs FeedSpec, verbose bool) ([]FeedEntry, error) {
 	}
 }
 
-const (
-	dirForward = iota
-	dirBackward
-)
-
 func showSeenItem(item FeedEntry) {
 	fmt.Printf("%12s %7s: %s\n", item.Feed().ShortName, "SEEN", item.EntryTitle())
 }
@@ -102,27 +97,53 @@ func markAllItemsInFeedRead(i int, items []FeedEntry, verbose bool) []FeedEntry 
 	return items
 }
 
-func scanItems(pos, dir int, items []FeedEntry, verbose bool) (int, bool) {
+const (
+	dirForward = iota
+	dirBackward
+)
+
+const (
+	nextUnread = iota
+	nextAny
+)
+
+func nextItem(pos, dir, changeKind int, items []FeedEntry, verbose bool) (int, bool) {
+	// Move forward or backwards by a single item:
+	if changeKind == nextAny {
+		if dir == dirForward {
+			if pos == len(items)-1 {
+				return pos, true
+			} else {
+				return pos + 1, false
+			}
+		} else {
+			if pos == 0 {
+				return pos, true
+			} else {
+				return pos - 1, false
+			}
+		}
+	}
+	// Scan forward or backwards for unread items:
+	scanStarted := false
 	for {
 		if pos >= len(items) {
 			pos = len(items) - 1
-			// showItem(items[pos])
 			return pos, true
 		}
 		if pos < 0 {
 			pos = 0
-			// showItem(items[pos])
 			return 0, true
 		}
 		item := items[pos]
-		if urlWasSeen(item.EntryURL()) {
+		if urlWasSeen(item.EntryURL()) || !scanStarted {
 			if dir == dirForward {
 				pos++
 			} else {
 				pos--
 			}
+			scanStarted = true
 		} else {
-			showNewItem(item)
 			return pos, false
 		}
 	}
@@ -131,12 +152,14 @@ func scanItems(pos, dir int, items []FeedEntry, verbose bool) (int, bool) {
 func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) error {
 	fmt.Println("")
 	i := 0
-	i, done := scanItems(i, dirForward, items, verbose)
+	i, done := nextItem(i, dirForward, nextUnread, items, verbose)
 	if done && !repl {
 		return nil
 	}
 	for {
 		item := items[i]
+		fmt.Printf("%3d", i)
+		showItem(item)
 		fmt.Print("? ")
 		c := readChar(theTTY)
 		fmt.Println(c)
@@ -144,43 +167,30 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 		case "H":
 			postItem(item, theTTY)
 			recordURL(item.EntryURL())
-			i++
+			i, _ = nextItem(i, dirForward, nextUnread, items, verbose)
 		case "n":
-			i++
-			if i >= len(items) {
-				i = len(items) - 1
-			}
-			showItem(items[i])
+			i, _ = nextItem(i, dirForward, nextUnread, items, verbose)
 		case "N":
 			i++
-			i, _ = scanItems(i, dirForward, items, verbose)
+			i, _ = nextItem(i, dirForward, nextAny, items, verbose)
 		case "p":
-			i--
-			if i < 0 {
-				i = 0
-			}
-			showItem(items[i])
+			i, _ = nextItem(i, dirBackward, nextUnread, items, verbose)
 		case "P":
-			i--
-			i, _ = scanItems(i, dirBackward, items, verbose)
-			showItem(items[i])
+			i, _ = nextItem(i, dirBackward, nextAny, items, verbose)
 		case "F":
 			i = 0
-			showItem(items[i])
 		case "A":
 			i = len(items) - 1
-			showItem(items[i])
 		case "x":
 			recordURL(item.EntryURL())
-			i, _ = scanItems(i, dirForward, items, verbose)
+			i, _ = nextItem(i, dirForward, nextUnread, items, verbose)
 		case "X":
 			items = markAllItemsInFeedRead(i, items, verbose)
 			recordURL(item.EntryURL())
-			i, _ = scanItems(i, dirForward, items, verbose)
+			i, _ = nextItem(i, dirForward, nextUnread, items, verbose)
 		case "u":
 			// NOTE: Can return non-nil error if file doesn't exist, but we ignore it:
 			unRecordURL(item.EntryURL())
-			showItem(item)
 		case "o":
 			err := macOpen(item.EntryURL())
 			if err != nil {
@@ -191,27 +201,27 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 				fmt.Println("\n\nOK, See ya!")
 			}
 			return nil
-		case "?":
+		case "?", "h":
 			fmt.Println("USAGE:")
 			fmt.Println(`
 			F first article
 
-			p prev article (read or unread)
-			P prev unread article
-
-			n next article (read or unread)
-			N next unread article
+			n next unread article
+			N next article (read or unread)
+			p prev unread article
+			P prev article (read or unread)
 
 			x mark article read
-			X mark all articles in feed read
+			X mark all articles in current feed read
 			u mark article unread
+
 			o open article in browser
 			H post on Hacker News (must be logged in)
 
 			A last article
 			q quit program
 
-			? this help message
+			h or ? this help message
 			`)
 		}
 	}
@@ -266,8 +276,4 @@ func main() {
 	}
 
 	interactWithItems(procItems, stdin, verbose, repl)
-
-	if verbose {
-		fmt.Println("OK")
-	}
 }
