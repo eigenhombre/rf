@@ -16,11 +16,11 @@ I wrote this small feed reader because I was unhappy with my Web-based options.
 - Single-keystroke-driven;
 - Fetch all feeds in parallel to minimize latency;
 - Workflow otherwise similar in feel to [`rn`](https://en.wikipedia.org/wiki/Rn_(newsreader)).  (You may have to be over 50 and/or have other problems for this to have any appeal.)
-- Configurable JSON list of feeds;
+- Configurable JSON list of feeds.
 
 ## Planned / Mabye
 
-- Provide in-band, plain-text preview of text contents.
+- Provide plain-text preview of text contents inline, similar to a venerable Usenet news reader.
 
 # Implementation
 
