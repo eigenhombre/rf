@@ -166,7 +166,6 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 		case "n":
 			i, _ = nextItem(i, dirForward, nextUnread, items, verbose)
 		case "N":
-			i++
 			i, _ = nextItem(i, dirForward, nextAny, items, verbose)
 		case "p":
 			i, _ = nextItem(i, dirBackward, nextUnread, items, verbose)
