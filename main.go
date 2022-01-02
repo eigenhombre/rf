@@ -136,12 +136,12 @@ func fetchAndShowArticle(item FeedEntry) {
 	}
 	fmt.Printf("(%d bytes)\n", len(body))
 	text, err := html2text.FromString(string(body),
-		html2text.Options{PrettyTables: false, OmitLinks: true})
+		html2text.Options{PrettyTables: false, OmitLinks: true, TextOnly: true})
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(text)
+	fmt.Println(wrapText(text, 80))
 }
 
 func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) error {
