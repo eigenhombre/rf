@@ -50,8 +50,8 @@ func readChar(theTTY *tty.TTY) string {
 	return string(r)
 }
 
-func rawFeedData(endpoint string) ([]byte, error) {
-	res, err := http.Get(endpoint)
+func httpGetBytes(url string) ([]byte, error) {
+	res, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}

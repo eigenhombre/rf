@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/mattn/go-tty"
+	"jaytaylor.com/html2text"
 )
 
 const (
@@ -34,7 +35,7 @@ type FeedEntry interface {
 }
 
 func getFeedItems(fs FeedSpec, verbose bool) ([]FeedEntry, error) {
-	body, err := rawFeedData(fs.URL)
+	body, err := httpGetBytes(fs.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -127,6 +128,22 @@ func nextItem(pos, dir, changeKind int, items []FeedEntry, verbose bool) (int, b
 	}
 }
 
+func fetchAndShowArticle(item FeedEntry) {
+	fmt.Printf("Fetching %s... ", item.EntryTitle())
+	body, err := httpGetBytes(item.EntryURL())
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("(%d bytes)\n", len(body))
+	text, err := html2text.FromString(string(body),
+		html2text.Options{PrettyTables: false, OmitLinks: true})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(text)
+}
+
 func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) error {
 	fmt.Println("")
 	i := 0
@@ -157,6 +174,8 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			i, _ = nextItem(i, dirBackward, nextAny, items, verbose)
 		case "F":
 			i = 0
+		case "f":
+			fetchAndShowArticle(item)
 		case "A":
 			i = len(items) - 1
 		case "x":
@@ -194,6 +213,7 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			u mark article unread
 
 			o open article in browser
+			f fetch and show article online, in plain text (beta!)
 			H post on Hacker News (must be logged in)
 
 			A last article
