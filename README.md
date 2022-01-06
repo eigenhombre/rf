@@ -1,6 +1,6 @@
 # rf
 
-<img src="/nightscan.jpeg" width="400">
+<img src="nightscan.jpeg" width="400">
 
 ![build](https://github.com/eigenhombre/rf/actions/workflows/build.yml/badge.svg)
 
