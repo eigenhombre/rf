@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"sync"
 
@@ -144,6 +145,16 @@ func fetchAndShowArticle(item FeedEntry) {
 	fmt.Println(wrapText(text, 80))
 }
 
+func unreadItemIndices(items []FeedEntry) []int {
+	ret := []int{}
+	for i, item := range items {
+		if !urlWasSeen(item.EntryURL()) {
+			ret = append(ret, i)
+		}
+	}
+	return ret
+}
+
 func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) error {
 	fmt.Println("")
 	i := 0
@@ -174,6 +185,13 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			i, _ = nextItem(i, dirBackward, nextUnread, items, verbose)
 		case "P":
 			i, _ = nextItem(i, dirBackward, nextAny, items, verbose)
+		case "R":
+			uis := unreadItemIndices(items)
+			if len(uis) == 0 {
+				fmt.Println("No unread items!")
+			} else {
+				i = uis[rand.Intn(len(uis))]
+			}
 		case "F":
 			i = 0
 		case "f":
@@ -212,6 +230,7 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			N next article (read or unread)
 			p prev unread article
 			P prev article (read or unread)
+			R random unread article
 
 			x mark article read
 			X mark all articles in current feed read
