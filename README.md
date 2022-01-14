@@ -73,8 +73,8 @@ in your home directory.  Example:
 			"type": "rss"
 		},
 		{
-		    "name": "MATT",
-		    "url": "https://matthewrocklin.com/blog/atom.xml",
-		    "type": "atom"
+			"name": "MATT",
+			"url": "https://matthewrocklin.com/blog/atom.xml",
+			"type": "atom"
 		}
 	]
