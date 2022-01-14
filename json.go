@@ -15,7 +15,7 @@ import (
 // }
 
 func feedFileName() string {
-	return os.Getenv("HOME") + "/.rffeeds"
+	return os.Getenv("HOME") + "/.rffeeds.json"
 }
 
 // // Commented out pending feed addition:

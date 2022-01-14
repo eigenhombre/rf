@@ -267,7 +267,7 @@ func main() {
 	if err != nil {
 		fmt.Println(`There was a problem reading your feed configuration file.
 
-Create a file $HOME/.rffeeds as follows:
+Create a file $HOME/.rffeeds.json as follows:
 
 [
 	{

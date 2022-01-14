@@ -60,3 +60,21 @@ I'll set up `go get` eventually.
 			q quit program
 
 			h or ? this help message
+
+## Feed Configuration
+
+Currently, you have to add feeds manually by creating `.rffeeds.json` 
+in your home directory.  Example:
+
+	[
+		{
+			"name": "PG",
+			"url": "http://www.aaronsw.com/2002/feeds/pgessays.rss",
+			"type": "rss"
+		},
+		{
+		    "name": "MATT",
+		    "url": "https://matthewrocklin.com/blog/atom.xml",
+		    "type": "atom"
+		}
+	]
