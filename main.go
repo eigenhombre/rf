@@ -165,6 +165,9 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			i, _ = nextItem(i, dirForward, nextUnread, items, verbose)
 		case "n":
 			i, _ = nextItem(i, dirForward, nextUnread, items, verbose)
+			if urlWasSeen(items[i].EntryURL()) && !repl {
+				return nil
+			}
 		case "N":
 			i, _ = nextItem(i, dirForward, nextAny, items, verbose)
 		case "p":
@@ -180,6 +183,9 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 		case "x":
 			recordURL(item.EntryURL())
 			i, _ = nextItem(i, dirForward, nextUnread, items, verbose)
+			if urlWasSeen(items[i].EntryURL()) && !repl {
+				return nil
+			}
 		case "X":
 			items = markAllItemsInFeedRead(i, items, verbose)
 			recordURL(item.EntryURL())
