@@ -23,3 +23,20 @@ func wrapText(input string, column int) string {
 	}
 	return ret
 }
+
+func chunks(input string, chunkHeight int) []string {
+	splits := strings.Split(input, "\n")
+	ret := []string{}
+	cur := ""
+	curLen := 0
+	for i, line := range splits {
+		cur += line + "\n"
+		curLen++
+		if curLen >= chunkHeight || i == len(splits)-1 {
+			ret = append(ret, cur)
+			curLen = 0
+			cur = ""
+		}
+	}
+	return ret
+}

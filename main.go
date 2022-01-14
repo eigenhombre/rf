@@ -129,7 +129,26 @@ func nextItem(pos, dir, changeKind int, items []FeedEntry, verbose bool) (int, b
 	}
 }
 
-func fetchAndShowArticle(item FeedEntry) {
+func showPaginated(theTTY *tty.TTY, body string) {
+	_, ySize, err := theTTY.Size()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	blocks := chunks(body, ySize-3)
+	for i, chunk := range blocks {
+		fmt.Printf("%s", chunk)
+		if i < len(blocks)-1 {
+			fmt.Print("--More--")
+			c := readChar(theTTY)
+			if c == "q" {
+				break
+			}
+		}
+	}
+}
+
+func fetchAndShowArticle(theTTY *tty.TTY, item FeedEntry) {
 	fmt.Printf("Fetching %s... ", item.EntryTitle())
 	body, err := httpGetBytes(item.EntryURL())
 	if err != nil {
@@ -142,7 +161,7 @@ func fetchAndShowArticle(item FeedEntry) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(wrapText(text, 80))
+	showPaginated(theTTY, wrapText(text, 80))
 }
 
 func unreadItemIndices(items []FeedEntry) []int {
@@ -195,7 +214,7 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 		case "F":
 			i = 0
 		case "f":
-			fetchAndShowArticle(item)
+			fetchAndShowArticle(theTTY, item)
 		case "A":
 			i = len(items) - 1
 		case "x":
