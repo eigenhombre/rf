@@ -46,12 +46,14 @@ I'll set up `go get` eventually.
 			N next article (read or unread)
 			p prev unread article
 			P prev article (read or unread)
+			R random unread article
 
 			x mark article read
 			X mark all articles in current feed read
 			u mark article unread
 
 			o open article in browser
+			f fetch and show article online, in plain text (beta!)
 			H post on Hacker News (must be logged in)
 
 			A last article
