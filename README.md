@@ -10,12 +10,12 @@ I wrote this small feed reader because I was unhappy with my Web-based options.
 
 # Features
 
-- Completely text-based (except for actual viewing / posting of articles)
-- Cross-post to Hacker News
-- Single-keystroke-driven
-- Fetch all feeds in parallel to minimize latency
-- Workflow similar in feel to [`rn`](https://en.wikipedia.org/wiki/Rn_(newsreader)).  (you may have to be over 50 and/or have other problems for this to have any appeal)
-- Configurable JSON list of feeds
+- Largely terminal-based; no Web bloat, though you can open articles in the browser;
+- Cross-post to Hacker News;
+- Single-keystroke-driven;
+- Fetch all feeds in parallel to minimize latency;
+- Workflow similar in feel to [`rn`](https://en.wikipedia.org/wiki/Rn_(newsreader)).  (you may have to be over 50 and/or have other problems for this to have any appeal);
+- Configurable JSON list of feeds (coming soon: add/remove subscriptions through the program itself);
 - Provide plain-text preview of text contents inline, similar to a venerable Usenet news reader (*IN PROGRESS / BETA*).
 
 # Implementation
