@@ -19,7 +19,9 @@ type AtomEntry struct {
 	XMLName xml.Name `xml:"entry"`
 	Title   string   `xml:"title"`
 	URL     atomLink `xml:"link"`
-	fs      FeedSpec
+	Date    string   `xml:"pubDate"`
+	Updated string   `xml:"updated"`
+	fs      Feed
 }
 
 // EntryTitle returns an Atom post's title.
@@ -33,11 +35,18 @@ func (e AtomEntry) EntryURL() string {
 }
 
 // Feed returns the feed specifier for a given Atom feed item.
-func (e AtomEntry) Feed() FeedSpec {
+func (e AtomEntry) Feed() Feed {
 	return e.fs
 }
 
-func atomFeedItems(fs FeedSpec, rawFeedData []byte) []FeedEntry {
+func (e AtomEntry) EntryDate() string {
+	if e.Updated != "" {
+		return e.Updated
+	}
+	return e.Date
+}
+
+func atomFeedItems(fs Feed, rawFeedData []byte) []FeedEntry {
 	feed := atomFeed{}
 	xml.Unmarshal(rawFeedData, &feed)
 	ret := []FeedEntry{}

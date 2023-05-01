@@ -33,7 +33,7 @@ const exampleAtomFeedSingleItem = `<?xml version="1.0" encoding="utf-8" standalo
 func TestAtomFeedItems(t *testing.T) {
 	rawData := []byte(exampleAtomFeedSingleItem)
 	// FIXME: Add/improve test coverage around FeedSpec part:
-	items := atomFeedItems(FeedSpec{}, rawData)
+	items := atomFeedItems(Feed{}, rawData)
 	assert.Equal(t, len(items), 1)
 	assert.Equal(t, items[0].EntryTitle(), "Another Atomic Article")
 	assert.Equal(t, items[0].EntryURL(), "http://johnj.com/aaa.html")

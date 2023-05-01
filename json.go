@@ -31,13 +31,13 @@ func feedFileName() string {
 // 	return nil
 // }
 
-func serializedFeeds() ([]FeedSpec, error) {
+func serializedFeeds() ([]Feed, error) {
 	feedFile := feedFileName()
 	body, err := slurp(feedFile)
 	if err != nil {
 		return nil, err
 	}
-	feeds := []FeedSpec{}
+	feeds := []Feed{}
 	err = json.Unmarshal([]byte(body), &feeds)
 	if err != nil {
 		return nil, err

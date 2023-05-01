@@ -22,7 +22,8 @@ type RSSEntry struct {
 	Title   string   `xml:"title"`
 	URL     string   `xml:"link"`
 	GUID    string   `xml:"guid"`
-	fs      FeedSpec
+	Date    string   `xml:"pubDate"`
+	fs      Feed
 }
 
 // EntryTitle returns an RSS post's title.
@@ -38,12 +39,16 @@ func (r RSSEntry) EntryURL() string {
 	return r.GUID
 }
 
+func (r RSSEntry) EntryDate() string {
+	return r.Date
+}
+
 // Feed returns the feed specifier for a given RSS feed item.
-func (r RSSEntry) Feed() FeedSpec {
+func (r RSSEntry) Feed() Feed {
 	return r.fs
 }
 
-func rssFeedItems(fs FeedSpec, rawFeedData []byte) []FeedEntry {
+func rssFeedItems(fs Feed, rawFeedData []byte) []FeedEntry {
 	feed := rssFeed{}
 	xml.Unmarshal(rawFeedData, &feed)
 	ret := []FeedEntry{}

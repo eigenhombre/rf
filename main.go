@@ -1,13 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
 	"math/rand"
 	"os"
-	"sync"
+	"time"
 
+	_ "github.com/glebarez/go-sqlite"
 	"github.com/mattn/go-tty"
 	"jaytaylor.com/html2text"
 )
@@ -21,33 +23,12 @@ const (
 	atomType = "atom"
 )
 
-// FeedSpec is a generic RSS/Atom feed specifier.
-type FeedSpec struct {
-	ShortName string `json:"name"`
-	URL       string `json:"url"`
-	FeedType  string `json:"type"`
-}
-
 // FeedEntry is a generic RSS/Atom feed post type.
 type FeedEntry interface {
 	EntryTitle() string
 	EntryURL() string
-	Feed() FeedSpec
-}
-
-func getFeedItems(fs FeedSpec, verbose bool) ([]FeedEntry, error) {
-	body, err := httpGetBytes(fs.URL)
-	if err != nil {
-		return nil, err
-	}
-	switch fs.FeedType {
-	case rssType:
-		return rssFeedItems(fs, body), nil
-	case atomType:
-		return atomFeedItems(fs, body), nil
-	default:
-		return nil, fmt.Errorf("bad feed type, %v", fs.FeedType)
-	}
+	EntryDate() string
+	Feed() Feed
 }
 
 func showSeenItem(item FeedEntry) {
@@ -174,21 +155,31 @@ func unreadItemIndices(items []FeedEntry) []int {
 	return ret
 }
 
-func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) error {
+func interactWithItemsOld(feedspecs []Feed, items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) error {
 	fmt.Println("")
 	i := 0
 	i, done := nextItem(i, dirForward, nextUnread, items, verbose)
 	if done && !repl {
 		return nil
 	}
+	numToScroll := 0
 	for {
 		item := items[i]
 		fmt.Printf("%3d", i)
 		showItem(item)
 		fmt.Print("? ")
+		if numToScroll > 0 {
+			numToScroll--
+			i, _ = nextItem(i, dirForward, nextUnread, items, verbose)
+			continue
+		}
 		c := readChar(theTTY)
 		fmt.Println(c)
 		switch c {
+		case "E":
+			for _, f := range feedspecs {
+				fmt.Println(f.ShortName)
+			}
 		case "H":
 			postItem(item, theTTY)
 			recordURL(item.EntryURL())
@@ -230,6 +221,8 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 		case "u":
 			// NOTE: Can return non-nil error if file doesn't exist, but we ignore it:
 			unRecordURL(item.EntryURL())
+		case "l":
+			numToScroll = 5
 		case "o":
 			err := macOpen(item.EntryURL())
 			if err != nil {
@@ -250,6 +243,7 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			p prev unread article
 			P prev article (read or unread)
 			R random unread article
+			l list next five unread articles
 
 			x mark article read
 			X mark all articles in current feed read
@@ -260,12 +254,33 @@ func interactWithItems(items []FeedEntry, theTTY *tty.TTY, verbose, repl bool) e
 			H post on Hacker News (must be logged in)
 
 			A last article
+
+			E list feeds
 			q quit program
 
 			h or ? this help message
 			`)
 		}
 	}
+}
+
+func interactWithDbItems(db *sql.DB, stdin *tty.TTY, verbose, repl bool) {
+	fmt.Println("")
+	feedSpecs, err := getFeedSpecs(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fsi := 0
+	fmt.Printf("Current feed: %s\n", feedSpecs[fsi].ShortName)
+	// // Get items from DB:
+	// items, err := getFeedItemsFromDb(db)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Printf("%d items found in %d feeds.\n", len(items), len(feedSpecs))
+	// for _, item := range items {
+	// 	fmt.Printf("%12s (%d): %s ... %s.\n", item.FS.ShortName, item.FS.Id, item.Title, item.Date)
+	// }
 }
 
 func main() {
@@ -282,45 +297,56 @@ func main() {
 		// Usage() is called inside Parse
 		return
 	}
-	feedSpecs, err := serializedFeeds()
+
+	// DB Setup:
+	db, err := getDb(false)
 	if err != nil {
-		fmt.Println(`There was a problem reading your feed configuration file.
-
-Create a file $HOME/.rffeeds.json as follows:
-
-[
-	{
-		"name": "PG",
-		"url": "http://www.aaronsw.com/2002/feeds/pgessays.rss",
-		"type": "rss"
-	  }
-]
-
-Then restart the program.
-		
-		`)
-		os.Exit(-1)
+		log.Fatal(err)
 	}
-	ch := make(chan []FeedEntry, len(feedSpecs))
-	var wg sync.WaitGroup
+	defer db.Close()
+	createTablesIfNotExist(db)
+	feedSpecs, err := getFeedSpecs(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 	for _, fs := range feedSpecs {
-		wg.Add(1)
-		go func(fs FeedSpec) {
-			defer wg.Done()
-			items, err := getFeedItems(fs, verbose)
-			if err != nil {
-				log.Fatal(err)
-			}
-			if verbose {
-				fmt.Printf("%12s: %d items found\n", fs.ShortName, len(items))
-			} else {
-				fmt.Print(".")
-			}
-			ch <- items
-		}(fs)
+		if shouldFetchFeed(db, fs, 5*time.Minute) {
+			fmt.Printf("Fetching items for '%s': %s\n", fs.ShortName, fs.URL)
+			updateFeedItemsInDb(db, fs, verbose)
+		}
 	}
-	wg.Wait()
-	close(ch)
+	// // ch := make(chan []FeedEntry, len(feedSpecs))
+	// ch := make(chan []FeedEntry, 2000)
+	// dones := make(chan bool, len(feedSpecs))
+	// // ch := make(chan FeedEntry, len(feedSpecs))
+	// var wg sync.WaitGroup
+	// for _, fs := range feedSpecs {
+	// 	wg.Add(1)
+	// 	go func(fs FeedSpec) {
+	// 		fmt.Printf("%12s: \n", fs.ShortName)
+	// 		defer wg.Done()
+	// 		items, err := getFeedItems(fs, verbose)
+	// 		if err != nil {
+	// 			log.Fatal(err)
+	// 		}
+	// 		if verbose {
+	// 			fmt.Printf("%12s: %d items found\n", fs.ShortName, len(items))
+	// 		} else {
+	// 			fmt.Printf("%d ", len(items))
+	// 		}
+	// 		// for _, item := range items {
+	// 		// 	ch <- item
+	// 		// }
+	// 		ch <- items
+	// 	}(fs)
+	// 	dones <- true
+	// }
+	// for i := 0; i < len(feedSpecs); i++ {
+	// 	<-dones
+	// }
+	// // close(ch)
+	// // wg.Wait()
+	// // close(ch)
 
 	stdin, err := tty.Open()
 	if err != nil {
@@ -328,11 +354,16 @@ Then restart the program.
 	}
 	defer stdin.Close()
 
-	// Consume and concatenate results:
-	var procItems []FeedEntry = []FeedEntry{}
-	for items := range ch {
-		procItems = append(procItems, items...)
-	}
+	interactWithDbItems(db, stdin, verbose, repl)
+	// // Consume and concatenate results:
+	// var procItems []FeedEntry = []FeedEntry{}
+	// fmt.Println("Waiting for all feeds to be processed...")
+	// for items := range ch {
+	// 	procItems = append(procItems, items...)
+	// }
+	// for item := range ch {
+	// 	procItems = append(procItems, item)
+	// }
 
-	interactWithItems(procItems, stdin, verbose, repl)
+	// interactWithItemsOld(feedSpecs, procItems, stdin, verbose, repl)
 }

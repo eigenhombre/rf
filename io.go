@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -61,4 +62,19 @@ func httpGetBytes(url string) ([]byte, error) {
 		return nil, err
 	}
 	return bytes, nil
+}
+
+func getFeedItems(fs Feed, verbose bool) ([]FeedEntry, error) {
+	body, err := httpGetBytes(fs.URL)
+	if err != nil {
+		return nil, err
+	}
+	switch fs.FeedType {
+	case rssType:
+		return rssFeedItems(fs, body), nil
+	case atomType:
+		return atomFeedItems(fs, body), nil
+	default:
+		return nil, fmt.Errorf("bad feed type, %v", fs.FeedType)
+	}
 }

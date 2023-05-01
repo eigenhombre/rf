@@ -24,7 +24,7 @@ const exampleRSSFeedSingleItem = `<?xml version="1.0" encoding="UTF-8"?>
 func TestRSSFeedItems(t *testing.T) {
 	rawData := []byte(exampleRSSFeedSingleItem)
 	// FIXME: Add testing around FeedSpec part:
-	items := rssFeedItems(FeedSpec{}, rawData)
+	items := rssFeedItems(Feed{}, rawData)
 	assert.Equal(t, len(items), 1)
 	assert.Equal(t, items[0].EntryTitle(), "Strongly Lettered Word")
 	fmt.Println(items[0])
